@@ -14,16 +14,12 @@ clearvars
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 saveString = 'chain_output/ar2_23_01_13.mat';
 outDat.script=mfilename; %Save name of script
-obsmatrix='obs_22_11_03'; %Load data array, with colLabels corresponding to observer source for each column
-excludeFliers=1;%1 to remove outlier observations from examined dataset
-proxy3cycle=0;%1 to regress proxies onto TSI from 3 most recent solar cycles, 0 otherwise
-satOnly=0;%1 to ignore proxy data and only use satellites (no drift calculation), 0 otherwise
-proxyModel=0;%1 to use same datasets as NRLTSI2, 0 otherwise
+obsmatrix='obs_23_01_13'; %Load data array, with colLabels corresponding to observer source for each column
+excludeFliers=0;%1 to remove outlier observations from examined dataset
 
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
-dates=dateS.all2;
 dateCycles=dateS.cycles;
 
 
@@ -31,15 +27,10 @@ load(obsmatrix); %From makeobsmatrix.m
 %Twelve columns of valM correspond to the following observers:
 %     "ACRIM1/SMM"
 %     "ACRIM2/UARS"
-%     "ACRIM3"
 %     "BremenMgII"
 %     "ERBE/ERBS"
 %     "NIMBUS-7/HF"
-%     "PREMOS/PICARD"
 %     "SILSO"
-%     "SORCE/TIM"
-%     "TCTE"
-%     "TSIS-1"
 %     "VIRGO/SOHO"
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -50,28 +41,12 @@ if excludeFliers %Code to remove outliers using a past run of BTSI
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
 end
-if satOnly
-    %Satellite-only variation
-    oindex=[1 1 1 1 1 1 1 1 0 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
-    tindex=[0 0 0 0 0 0 0 0 0 0 0 0]; %tindex= no satellite drift
-    %tindex=[1 1 1 0 1 1 1 0 1 1 1 1]; %tindex= satellite drift
-    sindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
-    oM(:,logical(sindex))=false; %Eliminate use of observations from proxies
-elseif proxyModel
-    %NRLTSI2 version
-    oindex=[1 1 1 1 1 1 1 1 1 1 1 0]; %oindex=1 for observers with varying offset, 0 for fixed
-    tindex=[0 0 0 0 0 0 0 0 0 0 0 0]; %tindex=1 for observers with time dependent drift, 0 otherwise
-    sindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
-    oM(:,[1 2 3 5 6 7 9 10 11])=false; %Eliminate use of observations from eliminated sources
-%     timI=dateM.Year >= 2003 & dateM.Year <= 2014; %Cut down TIM to NRLTSI2 source
-%      oM(~timI,9)=false;
-else
-    %Specify priors for H coefficients
-    oindex=[1 1 1 1 1 1 1 1 0 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
-    tindex=[1 1 1 0 1 1 1 0 1 1 1 1]; %tindex=1 for observers with time dependent drift, 0 otherwise
-    sindex=[0 0 0 1 0 0 0 1 0 0 0 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
-%     valM(:,6)=NaN;oM(:,6)=false; %TURN OFF SATELLITE OBSERVATION
-end
+%Specify priors for H coefficients
+oindex=[1 1 1 1 1 1 0]; %oindex=1 for observers with varying offset, 0 for fixed
+tindex=[1 1 0 1 1 0 1]; %tindex=1 for observers with time dependent drift, 0 otherwise
+sindex=[0 0 1 0 0 1 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
+satindex=tindex; %satindex=1 for observers that are satellites, 0 otherwise
+
 valMAll=valM;
 data = valM;
 iObs = nansum(oM,1);
@@ -92,7 +67,9 @@ for ii=1:size(data,2)
 end
 
 %Load priors for observation model
-[H0, Hsig, T0, th0] = getar2priors(NN,oindex,tindex,sindex,iObs,colLabels,'obspriors_22_06_23.mat');
+opts.normalize=0; %Set to 1 to normalize data within
+[H0, Hsig, T0, th0] = getpriors(NN,oindex,tindex,sindex,valM,oM,...
+    satindex,colLabels,opts);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 1: establish starting values and priors
@@ -110,7 +87,7 @@ Sigma=eye(N);  %arbitrary starting value for the variance of transition model er
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(T,size(data,2));
 
-reps=10500; %Total steps of Gibbs Sampler
+reps=1500; %Total steps of Gibbs Sampler
 burn=500; %Steps excluded in burnin period
 mm=1;%index for saved chain post-burnin
 tic
@@ -121,20 +98,7 @@ for m=1:reps %Gibbs sampling
 hload=[];
 error=NaN(size(data));
 for i=1:NN %loop over all observers
-    if i ==9
-        fskf=1;
-    end
-    if proxy3cycle
-        %Select non-NaN values for Bayesian regression. Use
-        %latest 3 solar cycles for proxy regression
-        if sindex(i) %only use most recent three cycles for proxies
-            infI(:,i)=dateM>datejd(dateCycles(3,1))&oM(:,i);
-        else
-            infI(:,i)=oM(:,i);
-        end
-    else
-        infI(:,i)=oM(:,i);
-    end
+    infI(:,i)=oM(:,i);
     y=data(infI(:,i),i);
     alpha = [cx(infI(:,i)) x0(infI(:,i)) t(infI(:,i),i)]; %This needs to be the full predictor matrix
     precY=1./rmat(i); %Precision of observer i
@@ -277,17 +241,6 @@ end
 %step 7: If burnin completed, store state and observation model estimates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if m>burn
-    %Produce output for proxies
-    dateI=dateM.Year >= 2003 & dateM.Year <= 2014;
-    pI=find(sindex);
-    p=[ones(size(valM,1),1) valM(:,pI(1))-min(valM(:,pI(1)),[],'omitnan')...
-        valM(:,pI(2))-min(valM(:,pI(2)),[],'omitnan')];
-    pall=[ones(size(valM,1),1) valMAll(:,pI(1))-min(valMAll(:,pI(1)),[],'omitnan')...
-        valMAll(:,pI(2))-min(valMAll(:,pI(2)),[],'omitnan')];
-    [b,bint]=regress(x2(dateI,1)+offsets(find(~oindex)), p(dateI,:),0.6827);
-    b=b+randn(3,1).*((bint(:,2)-bint(:,1))/2);%include uncertainty in coefficient estimate
-    xMLR(:,mm)=pall*b;
-    
     %save
     xAll(:,mm)=x2(:,1); %Reconstructed TSI
     for ii=1:NN
@@ -306,9 +259,9 @@ end
 toc
 outDat.reps=reps;outDat.burn=burn;outDat.H0=H0;outDat.Hsig=Hsig;outDat.T0=T0;
 outDat.th0=th0;outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=sindex;
-outDat.excludeFliers=excludeFliers;outDat.proxy3cycle=proxy3cycle;outDat.satOnly=satOnly;
+outDat.excludeFliers=excludeFliers;
 outDat.obsmatrix=obsmatrix;
-save(saveString,'xAll','xMLR','sigY','sigX','a','A','t','outDat','-v7.3')
+save(saveString,'xAll','sigY','sigX','a','A','t','outDat','-v7.3')
 out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
 
 
