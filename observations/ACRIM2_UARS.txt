@@ -1,6 +1,6 @@
 ACRIM2/UARS
 Version: 
-Created: 08-Jun-2022
+Created: 03-Nov-2022
 JD        Value 
 2448533.5 1363.489000
 2448534.5 1364.022000

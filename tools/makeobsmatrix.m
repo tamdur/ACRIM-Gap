@@ -5,10 +5,10 @@
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
-dateR=dateS.all; %Load range of dates for which to incorporate observations
+dateR=dateS.acrimplusfive; %Load range of dates for which to incorporate observations
 removeOffsets=1; %1 to remove offsets from observations, 0 to keep native units
 satOnly=0; %1 to only use satellites, 0 to use proxies+satellites
-saveString= 'mat_files/obs_22_7_12.mat'; %Name of saved mat file
+saveString= 'mat_files/obs_23_01_13.mat'; %Name of saved mat file
 
 paths=dir('observations/*.txt');
 paths={paths.name};

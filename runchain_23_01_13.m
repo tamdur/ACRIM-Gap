@@ -12,7 +12,7 @@ clearvars
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Headers to modify
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveString = 'chain_output/ar2_22_11_04_long.mat';
+saveString = 'chain_output/ar2_23_01_13.mat';
 outDat.script=mfilename; %Save name of script
 obsmatrix='obs_22_11_03'; %Load data array, with colLabels corresponding to observer source for each column
 excludeFliers=1;%1 to remove outlier observations from examined dataset
