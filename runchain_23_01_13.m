@@ -12,7 +12,7 @@ clearvars
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Headers to modify
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveString = 'chain_output/ar2_23_01_13.mat';
+saveString = 'chain_output/ar2_23_01_14.mat';
 outDat.script=mfilename; %Save name of script
 obsmatrix='obs_23_01_13'; %Load data array, with colLabels corresponding to observer source for each column
 excludeFliers=0;%1 to remove outlier observations from examined dataset
@@ -87,7 +87,7 @@ Sigma=eye(N);  %arbitrary starting value for the variance of transition model er
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(T,size(data,2));
 
-reps=1500; %Total steps of Gibbs Sampler
+reps=10500; %Total steps of Gibbs Sampler
 burn=500; %Steps excluded in burnin period
 mm=1;%index for saved chain post-burnin
 tic
@@ -116,6 +116,7 @@ end
 rmat=[];
 for i=1:NN
     rmati= IG(T0(i),th0(i),error(infI(:,i),i));
+    th(i)=error(infI(:,i),i)'*error(infI(:,i),i);
     rmat=[rmat rmati];
 end
 
@@ -249,6 +250,7 @@ if m>burn
     a(:,mm)=F(1,:); %VAR autoregressive coefficients [lag1 lag2]
     sigY(:,mm)=rmat; %observer noise estimate
     sigX(:,mm) = Sigma; %TSI noise estimate
+    theta(:,mm)=th; %Theta parameter estimate
     outDat.contributionChain(mm,:,:)=contributionChain; %Innovation contributions
     mm=mm+1;
 end
@@ -259,9 +261,10 @@ end
 toc
 outDat.reps=reps;outDat.burn=burn;outDat.H0=H0;outDat.Hsig=Hsig;outDat.T0=T0;
 outDat.th0=th0;outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=sindex;
+outDat.satindex=satindex;
 outDat.excludeFliers=excludeFliers;
 outDat.obsmatrix=obsmatrix;
-save(saveString,'xAll','sigY','sigX','a','A','t','outDat','-v7.3')
+save(saveString,'xAll','sigY','sigX','theta','a','A','t','outDat','-v7.3')
 out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
 
 
