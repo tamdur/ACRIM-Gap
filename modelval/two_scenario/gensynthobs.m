@@ -18,9 +18,6 @@ function [valS,dateM] = gensynthobs(scenario,Ainit,epsilon,rho,t,oM)
 %           autocorrelated residual error
 
 
-%Set rng so that results are replicable
-rng(1);
-
 %Load TSI series used for the assumed truth
 tsi = twotsiseries;
 

@@ -1,3 +1,4 @@
+function [xAll,sigY,sigX,theta,a,A,t,outDat] = runchain_23_01_13(valM,oM,colLabels,saveFile,dispProgress)
 %runchain_22_04_25.m PRODUCE GIBBS SAMPLING OUTPUT OF BAYESIAN KALMAN
 %FILTER MODEL USING SATLELLITE AND PROXY DATA.
 %
@@ -8,21 +9,13 @@
 %Applied Bayesian Econometrics for Central Bankers, by Andrew Blake and
 %Haroon Mumtaz.
 
-clearvars
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Headers to modify
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-saveString = 'chain_output/ar2_23_01_14.mat';
 outDat.script=mfilename; %Save name of script
+
+if ~exist('valM','var') %Load default observation array, otherwise load provided one
 obsmatrix='obs_23_01_13'; %Load data array, with colLabels corresponding to observer source for each column
-excludeFliers=0;%1 to remove outlier observations from examined dataset
-
-%Develop a set of monthly observations from satellite and proxy
-%observations
-dateS=getdates;
-dateCycles=dateS.cycles;
-
-
 load(obsmatrix); %From makeobsmatrix.m
 %Seven columns of valM correspond to the following observers:
 %     "ACRIM1/SMM"
@@ -32,6 +25,16 @@ load(obsmatrix); %From makeobsmatrix.m
 %     "NIMBUS-7/HF"
 %     "SILSO"
 %     "VIRGO/SOHO"
+else
+    obsmatrix='synthetic';
+end
+excludeFliers=0;%1 to remove outlier observations from examined dataset
+
+%Develop a set of monthly observations from satellite and proxy
+%observations
+dateS=getdates;
+dateCycles=dateS.cycles;
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Beginning of main script
@@ -87,7 +90,7 @@ Sigma=eye(N);  %arbitrary starting value for the variance of transition model er
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(T,size(data,2));
 
-reps=10500; %Total steps of Gibbs Sampler
+reps=1500; %Total steps of Gibbs Sampler
 burn=500; %Steps excluded in burnin period
 mm=1;%index for saved chain post-burnin
 tic
@@ -234,8 +237,10 @@ for i=T-1:-1:1
     x2(i,jv1)=bm(jv1)+(wa(i,jv1)*chol(pm(jv1,jv1)));
 end
 x0=x2(:,jv1);   %update the state variable estimate
-if mod(m,100) == 0 %display progress of chain
-    disp([num2str(m) ' reps completed'])
+if dispProgress
+    if mod(m,100) == 0 %display progress of chain
+        disp([num2str(m) ' reps completed'])
+    end
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -257,15 +262,21 @@ end
     
 
 end
-
-toc
+if dispProgress
+    toc
+end
 outDat.reps=reps;outDat.burn=burn;outDat.H0=H0;outDat.Hsig=Hsig;outDat.T0=T0;
 outDat.th0=th0;outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=sindex;
 outDat.satindex=satindex;
 outDat.excludeFliers=excludeFliers;
 outDat.obsmatrix=obsmatrix;
-save(saveString,'xAll','sigY','sigX','theta','a','A','t','outDat','-v7.3')
-out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
+if ~isempty(saveFile)
+    save(saveFile,'xAll','sigY','sigX','theta','a','A','t','outDat','-v7.3')
+    out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
+end
+
+
+end
 
 
 

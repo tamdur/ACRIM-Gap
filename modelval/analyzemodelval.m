@@ -1,10 +1,10 @@
 
 
-obsmatrix='obs_22_7_12.mat';
+obsmatrix='obs_23_01_13.mat';
 load(obsmatrix); %From makeobsmatrix.m
-load excludeMask22_6_29.mat %from exclude_fliers_22_04_26.m
-valM(excludeMask) = NaN;
-oM(excludeMask) = false;
+%load excludeMask22_6_29.mat %from exclude_fliers_22_04_26.m
+% valM(excludeMask) = NaN;
+% oM(excludeMask) = false;
 
 inCtAll=0;
 allCtAll=0;

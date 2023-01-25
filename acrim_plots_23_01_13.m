@@ -16,7 +16,7 @@ obsContributions=0; %Plot the relative contribution of each observer to BTSI ove
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
-uncBTSI=1;%Calculate and plot the uncertainty in BTSI
+uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
