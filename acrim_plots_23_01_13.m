@@ -411,7 +411,7 @@ if obsContributions
     
 end
 if twoScenario
-    %Plot a panel with the error structure of the satellites
+        %Plot a panel with the error structure of the satellites
     load 2scenario_23_01_25.mat %Get hyperparameters, main structure
     figure2
     %First, plot the error structure sans AR(1) 
@@ -436,15 +436,20 @@ if twoScenario
         ACRIM.gapUnc(ii)=twoTest(ii).ACRIM.uncGap;
         PMOD.gap(ii)=twoTest(ii).PMOD.muGap;
         PMOD.gapUnc(ii)=twoTest(ii).PMOD.uncGap;
+        %See if gap is within expected uncertainty
+        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<2.*ACRIM.gapUnc(ii);
+        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<2.*PMOD.gapUnc(ii);
     end
     figure2
     histogram(ACRIM.gap)
     hold on
     line([ACRIMGAP ACRIMGAP],[0 size(twoTest,2)./10],'LineWidth',2)
+    disp(['95\% CI:' num2str(sum(ACRIM.within)./size(twoTest,2),'%.2f')])
     figure2
     histogram(PMOD.gap)
     hold on
     line([PMODGAP PMODGAP],[0 size(twoTest,2)./10],'LineWidth',2)
+    disp(['95\% CI:' num2str(sum(PMOD.within)./size(twoTest,2),'%.2f')])
     
     
     
