@@ -34,7 +34,7 @@ for ii=1:tN
     twoTest(ii).PMOD.tRun=toc;
 end
 scriptName=mfilename;
-save('twotest_23_01_25.mat','twoTest','scriptName')
+save('twotestcluster_23_01_25.mat','twoTest','scriptName')
 
 function [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM)
 %Return observation model values
