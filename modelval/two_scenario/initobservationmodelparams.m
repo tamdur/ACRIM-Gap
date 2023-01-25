@@ -47,44 +47,39 @@ end
 
 
 
-% thresh=48; %Threshold for using overlapping observers be it years or months
-% %Generate prior hyperparameter estimates 
-% nObs = length(colLabels);
-% %Make labels for which records fall under satellite vs proxy
-% isProx=~satindex;
-% proxInd=find(isProx);
-% satInd=find(satindex);
-% T=size(valM,1);
-% t = (0:T)';
+thresh=48; %Threshold for using overlapping observers be it years or months
+%Generate prior hyperparameter estimates 
+nObs = length(colLabels);
+%Make labels for which records fall under satellite vs proxy
+isProx=~satindex;
+proxInd=find(isProx);
+satInd=find(satindex);
+T=size(valM,1);
+t = (0:T)';
+ind=1;
+for ii=1:nObs
+    if any(ii==satInd) %Only make comparisons for primary observers
+        vSat = NaN(nObs,1);
+        iS = 1;
+        while iS <= length(satInd)
+            if iS ~= ii && satindex(iS) && sum(logical(oM(:,iS).*oM(:,ii)))>=thresh
+                overlap = logical(oM(:,iS).*oM(:,ii));
+                %Make a set of priors for the proxy observations using all satellites
+                satdiff=valM(overlap,ii)-valM(overlap,iS);
+                %Revised 9/8/21 to be in native units
+                pred=[ones(sum(overlap),1) t(overlap)];
+                b = regress(satdiff,pred);
+                residual(ind).vals=satdiff-pred*b;
+                residual(ind).sat1=colLabels(iS);
+                residual(ind).sat2=colLabels(ii);
+                ind=ind+1;
+            end
+            iS = iS + 1;
+            
+        end
+    end
+end
 
-% for ii=1:nObs
-%     if any(ii==satInd) %Only make comparisons for primary observers
-%         vSat = NaN(nObs,1);
-%         iS = 1;
-%         while iS <= nObs
-%             if iS ~= ii && satindex(iS)
-%                 overlap = logical(oM(:,iS).*oM(:,ii));
-%                 %Make a set of priors for the proxy observations using all satellites
-%                 satdiff=valM(overlap,ii)-valM(overlap,iS);
-%                 %Revised 9/8/21 to be in native units
-%                 pred=[ones(sum(overlap),1) t(overlap)];
-%                 b = regress(satdiff,pred);
-%                 residual=satdiff-b*pred;
-%             end
-%             iS = iS + 1;
-%         end
-%         %Include the data collected into a structure object
-%         if isfield(opts,'type')
-%             obsPrior(ii).type = opts.type;
-%         else
-%             obsPrior(ii).type = "sat";
-%         end
-%         obsPrior(ii).name = colLabels(ii);
-%         obsPrior(ii).std = sqrt(nanmean(vSat))./sqrt(2); %Correct for satellite noise coming from two observers
-%     end
-% end
-
-%Load the 
 
 
 end
