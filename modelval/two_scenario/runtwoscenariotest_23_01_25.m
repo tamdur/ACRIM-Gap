@@ -4,6 +4,8 @@
 
 clearvars
 parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+%Make sure everything is visible
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
 rng(1)
 
 %Load the synthetic datasets to be examined
@@ -23,7 +25,7 @@ for ii=1:tN
     twoTest(ii).ACRIM.tRun=toc;
     
     %Run BTSI on PMOD scenario
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(PMOD(ii).valM,oM,colLabels,[],false);
+    [xAll,sigY,~,~,~,A,~,~] = ../../runchain_23_01_13(PMOD(ii).valM,oM,colLabels,[],false);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     twoTest(ii).PMOD.Aout=Aout;
     twoTest(ii).PMOD.sigYOut=sigYOut;
