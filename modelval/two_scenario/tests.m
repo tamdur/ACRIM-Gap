@@ -1,3 +1,6 @@
+%Sandbox for determining how to correctly infer autocorrelation from time
+%series data
+
 for ii=1:1000
     aa=0;
     bb=0;

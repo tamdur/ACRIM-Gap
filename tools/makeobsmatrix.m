@@ -16,6 +16,8 @@ paths={paths.name};
 %First make a vector for every month in the dataset
 stJD = min(dateR); endJD = max(dateR);
 stDate = datejd(stJD); endDate = datejd(endJD);
+stDate=dateshift(stDate,'start','month');
+endDate=dateshift(endDate,'end','month');
 dateM = stDate;
 while juliandate(dateM(end)) < juliandate(endDate)
     dateM = [dateM; dateM(end) + calmonths(1)];
@@ -23,6 +25,7 @@ end
 dateM = dateM(1:end-1);
 dateMS = dateshift(dateM,'start','month');
 dateME = dateshift(dateM,'end','month');
+dateM=mean([dateMS,dateME],2);
 
 jdS = juliandate(dateMS);
 jdE = juliandate(dateME);

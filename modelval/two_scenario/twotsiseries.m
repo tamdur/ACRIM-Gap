@@ -1,4 +1,4 @@
-function [tsi] = twotsiseries
+function tsi = twotsiseries
 %TWOTSISERIES Return monthly time series for the two scenarios being
 %examined: the ACRIM composite and the PMOD composite. These will represent
 %the underlying 'true' TSI of the system.
