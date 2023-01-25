@@ -11,4 +11,4 @@
 #SBATCH --mail-user=amdur@g.harvard.edu
 
 module load matlab/R2018b-fasrc01
-srun -c $SLURM_CPUS_PER_TASK matlab -nosplash -nodesktop -r "runtwoscenariotest_23_01_25.m;"
+srun -c $SLURM_CPUS_PER_TASK matlab -nosplash -nodesktop -r "runtwoscenariotest_23_01_25;"
