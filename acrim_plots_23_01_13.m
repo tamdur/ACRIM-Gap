@@ -411,8 +411,9 @@ if obsContributions
     
 end
 if twoScenario
-        %Plot a panel with the error structure of the satellites
+    %Plot a panel with the error structure of the satellites
     load 2scenario_23_01_25.mat %Get hyperparameters, main structure
+    tsi = twotsiseries;
     figure2
     %First, plot the error structure sans AR(1) 
     satIndex=[1;2;4;5;7];
@@ -421,11 +422,11 @@ if twoScenario
         pred=pred(oM(:,satIndex(ii)));
         plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2)
         hold on
-        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-nanmean(ACRIM(1).valM(:,satIndex(ii))),'--','Color',c(2*ii,:))
+        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-tsi.ACRIM,'--','Color',c(2*ii,:))
         hold on
     end
     
-    load twotest_23_01_25.mat
+    load twotestcluster_23_01_25.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -434,6 +435,7 @@ if twoScenario
     for ii=1:size(twoTest,2)
         ACRIM.gap(ii)=twoTest(ii).ACRIM.muGap;
         ACRIM.gapUnc(ii)=twoTest(ii).ACRIM.uncGap;
+        ACRIM.sigY1(ii,:)=twoTest(ii).ACRIM.sigYOut;
         PMOD.gap(ii)=twoTest(ii).PMOD.muGap;
         PMOD.gapUnc(ii)=twoTest(ii).PMOD.uncGap;
         %See if gap is within expected uncertainty

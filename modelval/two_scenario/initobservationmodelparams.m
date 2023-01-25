@@ -53,21 +53,21 @@ nObs = length(colLabels);
 %Make labels for which records fall under satellite vs proxy
 isProx=~satindex;
 proxInd=find(isProx);
-satInd=find(satindex);
+satInd=satindex;
 T=size(valM,1);
-t = (0:T)';
+t1 = (0:T)';
 ind=1;
 for ii=1:nObs
     if any(ii==satInd) %Only make comparisons for primary observers
         vSat = NaN(nObs,1);
-        iS = 1;
-        while iS <= length(satInd)
-            if iS ~= ii && satindex(iS) && sum(logical(oM(:,iS).*oM(:,ii)))>=thresh
+        iS = ii+1;
+        while iS <= nObs
+            if any(iS==satInd) && sum(logical(oM(:,iS).*oM(:,ii)))>=thresh
                 overlap = logical(oM(:,iS).*oM(:,ii));
                 %Make a set of priors for the proxy observations using all satellites
                 satdiff=valM(overlap,ii)-valM(overlap,iS);
                 %Revised 9/8/21 to be in native units
-                pred=[ones(sum(overlap),1) t(overlap)];
+                pred=[ones(sum(overlap),1) t1(overlap)];
                 b = regress(satdiff,pred);
                 residual(ind).vals=satdiff-pred*b;
                 residual(ind).sat1=colLabels(iS);
@@ -75,11 +75,14 @@ for ii=1:nObs
                 ind=ind+1;
             end
             iS = iS + 1;
-            
         end
     end
 end
-
-
+%Estimate autocorrelation for each
+for ii=1:length(residual)
+    x=residual(ii).vals;
+    rho(ii)=x(2:end)'*x(1:end-1)/(x(1:end-1)'*x(1:end-1));
+end
+rho=mean(rho); %use the average autocorrelation parameter seen amongst models
 
 end
