@@ -14,7 +14,7 @@ rng(1)
 %Load the synthetic datasets to be examined
 load 2scenario_23_01_25.mat
 tN=length(ACRIM); %Number of synthetic datasets to be inferred
-for ii=1:tN
+parfor ii=1:tN
     tic;
     %Run BTSI on ACRIM scenario
     [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(ACRIM(ii).valM,oM,colLabels,[],false);

@@ -12,6 +12,7 @@ clearvars
 tsiComparison = 0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
+twoScenario=1; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
@@ -407,6 +408,45 @@ if obsContributions
     ylabel('Fractional Contribution')
     set(gca,'FontSize',fSize)
     saveas(gcf,'plots/obscontribution_23_01_18.png')
+    
+end
+if twoScenario
+    %Plot a panel with the error structure of the satellites
+    load 2scenario_23_01_25.mat %Get hyperparameters, main structure
+    figure2
+    %First, plot the error structure sans AR(1) 
+    satIndex=[1;2;4;5;7];
+    for ii=1:length(satIndex)
+        pred=Ainit(satIndex(ii),1)+Ainit(satIndex(ii),3).*t(:,satIndex(ii));
+        pred=pred(oM(:,satIndex(ii)));
+        plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2)
+        hold on
+        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-nanmean(ACRIM(1).valM(:,satIndex(ii))),'--','Color',c(2*ii,:))
+        hold on
+    end
+    
+    load twotest_23_01_25.mat
+    PMODGAP=0.0159; %FROM THE gapChange calculation
+    ACRIMGAP=0.7057; %From the gapChange calculation
+    %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
+    ACRIM=struct;
+    PMOD=struct;
+    for ii=1:size(twoTest,2)
+        ACRIM.gap(ii)=twoTest(ii).ACRIM.muGap;
+        ACRIM.gapUnc(ii)=twoTest(ii).ACRIM.uncGap;
+        PMOD.gap(ii)=twoTest(ii).PMOD.muGap;
+        PMOD.gapUnc(ii)=twoTest(ii).PMOD.uncGap;
+    end
+    figure2
+    histogram(ACRIM.gap)
+    hold on
+    line([ACRIMGAP ACRIMGAP],[0 size(twoTest,2)./10],'LineWidth',2)
+    figure2
+    histogram(PMOD.gap)
+    hold on
+    line([PMODGAP PMODGAP],[0 size(twoTest,2)./10],'LineWidth',2)
+    
+    
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
