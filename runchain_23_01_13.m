@@ -24,7 +24,7 @@ dateCycles=dateS.cycles;
 
 
 load(obsmatrix); %From makeobsmatrix.m
-%Twelve columns of valM correspond to the following observers:
+%Seven columns of valM correspond to the following observers:
 %     "ACRIM1/SMM"
 %     "ACRIM2/UARS"
 %     "BremenMgII"

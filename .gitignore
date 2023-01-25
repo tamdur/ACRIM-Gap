@@ -1,0 +1,14 @@
+# Ignore Mac system files
+.DS_Store
+
+# Ignore unneeded mat files
+/mat_files_old
+
+#Ignore unneeded matlab scripts and functions
+/scripts_old
+
+# Ignore Matlab active scripts
+*.asv
+
+# Ignore huge files (which are noted with the "long" appellation
+*long.mat

@@ -11,10 +11,12 @@ clearvars
 % PLOTS
 tsiComparison = 0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
-obsContributions=1; %Plot the relative contribution of each observer to BTSI over time
+obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
+posteriorParams=0; %Calculate posterior parameter values and confidence interval
+uncBTSI=1;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -154,7 +156,7 @@ if tsiComparison
     
     %Plot other TSI reconstructions
     ind = 1;
-    load oTSI_22_10_27.mat
+    load oTSI_22_10_27.mat %From readothertsi.m in the code_22_06 directory
     %Plot PMOD
     hold on
     tsiA = smoothPH(oTSI(7).mthtsi,smoothWindow);
@@ -460,6 +462,17 @@ if gapChange
     ACRIM=[mean(xACRIM(dateACRIM >= stInt(1)& dateACRIM <=stInt(end)));
         mean(xACRIM(dateACRIM >=  endInt(1) & dateACRIM<=endInt(end)))];
     ACRIM=[ACRIM;diff(ACRIM)];
+end
+if posteriorParams
+    alpha=0.95; %Specify width of confidence interval
+    expA=squeeze(mean(A,3));
+    intA=quantile(A,1-(1-alpha)/2,3)-quantile(A,(1-alpha)/2,3);
+end
+if uncBTSI
+    alpha=0.95; %CI width for analysis
+    tsix = quantile(xAll,[(1-alpha)/2,1-(1-alpha)/2],2);
+    figure
+    plot(dateM,tsix(:,2)-tsix(:,1))
 end
 if table1
     %Order as proxies followed by satellites in chronological order
