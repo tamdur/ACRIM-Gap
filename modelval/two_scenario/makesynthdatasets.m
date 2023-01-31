@@ -11,7 +11,7 @@ nSets=1000;
 ACRIM=struct;
 PMOD=struct;
 for ii=1:nSets
-    ACRIM(ii).valM=gensynthobs('ACRIM',Ainit,epsilon,rho,t,oM);
+    ACRIM(ii).valM=gensynthobs('ACRIM/PMOD proxy',Ainit,epsilon,rho,t,oM);
     [PMOD(ii).valM,dateM]=gensynthobs('PMOD',Ainit,epsilon,rho,t,oM);
 end
 %Get other metadata
@@ -28,4 +28,4 @@ setInfo.oM=oM;
 setInfo.colLabels=colLabels;
 setInfo.obsmatrix=obsmatrix;
 setInfo.notes='Fixes prior error where satellite observations were not centered to zero';
-save('2scenario_23_01_31.mat','ACRIM','PMOD','setInfo');
+save('2scenario_23_01_31_PMODproxyb.mat','ACRIM','PMOD','setInfo');

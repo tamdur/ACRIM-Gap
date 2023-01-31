@@ -413,9 +413,11 @@ end
 if twoScenario
     fSize=16;
     %Plot a panel with the error structure of the satellites
-    load 2scenario_23_01_25b.mat %Get hyperparameters, main structure
+    %load 2scenario_23_01_25b.mat %Get hyperparameters, main structure
     %load 2scenario_23_01_31_PMODproxy.mat
+    load 2scenario_23_01_31.mat
     tsi = twotsiseries;
+    Ainit=setInfo.Ainit;
     figure2('Position',[10 10 1000 1000])
     subplot('position',[.09 .635 .85 .35]) %Plot of proxy observations
     %First, plot the error structure sans AR(1) 
@@ -426,7 +428,7 @@ if twoScenario
         pred=pred(oM(:,satIndex(ii)));
         h(ind)=plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2);
         hold on
-        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-tsi.ACRIM,'--','Color',c(2*ii,:))
+        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-(tsi.ACRIM-nanmean(tsi.ACRIM)),'--','Color',c(2*ii,:))
         hold on
         ind=ind+1;
     end
@@ -436,8 +438,9 @@ if twoScenario
     ylabel('Satellite observer error (W/m^{2})')
     set(gca,'FontSize',fSize)
     
-    load twotestcluster_23_01_25b.mat
+    %load twotestcluster_23_01_25b.mat
     %load twotestcluster_ACRIMsatPMODprox_23_01_31.mat
+    load twotestcluster_23_01_31.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -473,7 +476,7 @@ if twoScenario
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(ACRIM.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/twoscenario_23_01_26.png')
+    saveas(gcf,'plots/twoscenario_23_01_31.png')
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
