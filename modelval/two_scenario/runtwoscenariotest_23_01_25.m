@@ -12,7 +12,7 @@ addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/mat_files')
 rng(1)
 
 %Load the synthetic datasets to be examined
-load 2scenario_23_01_31_PMODProxyb.mat
+load 2scenario_23_01_31.mat
 oM=setInfo.oM;
 colLabels=setInfo.colLabels;
 dateM=setInfo.dateM;

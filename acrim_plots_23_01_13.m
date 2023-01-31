@@ -415,7 +415,7 @@ if twoScenario
     %Plot a panel with the error structure of the satellites
     %load 2scenario_23_01_25b.mat %Get hyperparameters, main structure
     %load 2scenario_23_01_31_PMODproxy.mat
-    load 2scenario_23_01_31.mat
+    load 2scenario_23_01_31_PMODProxyb.mat
     tsi = twotsiseries;
     Ainit=setInfo.Ainit;
     figure2('Position',[10 10 1000 1000])
@@ -452,9 +452,10 @@ if twoScenario
         ACRIM.sigY1(ii,:)=twoTest(ii).ACRIM.sigYOut;
         PMOD.gap(ii)=twoTest(ii).PMOD.muGap;
         PMOD.gapUnc(ii)=twoTest(ii).PMOD.uncGap;
+        PMOD.sigY1(ii,:)=twoTest(ii).PMOD.sigYOut;
         %See if gap is within expected uncertainty
-        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<ACRIM.gapUnc(ii);
-        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<PMOD.gapUnc(ii);
+        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<(2.*ACRIM.gapUnc(ii));
+        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<(2.*PMOD.gapUnc(ii));
     end
     subplot('position',[.09 .07 .85 .5]) %Plot of proxy observations
     histogram(ACRIM.gap)
