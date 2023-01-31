@@ -64,6 +64,7 @@ for ii=1:length(satInd)
         error(iT)=rho.*error(iT-1)+sigma.*randn;
     end
     valS(:,satInd(ii))=valS(:,satInd(ii))+error;
+    valS(:,satInd(ii))=valS(:,satInd(ii))-nanmean(x); %Center
 end
 
 %Last, make observation matrix contain the same missing obs structure as

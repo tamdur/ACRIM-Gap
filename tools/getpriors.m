@@ -83,8 +83,6 @@ end
 priFrac = 0.25; %Fraction of the 'observations' for sigX, sigY to be from prior
 offSig = 5; %prior satellite variance for a (offset)
 mSig = 0.25; %prior variance for c (satellite drift)
-H0=zeros(NN,3);H0(:,2) = 1; %prior for scaling H of form [a_i b_i c_i]
-Hsig=1E-12.*ones(NN,3);
 
 H0=zeros(NN,3);H0(:,2) = 1; %prior for scaling H of form [a_i b_i c_i]
 Hsig=1E-12.*ones(NN,3);
