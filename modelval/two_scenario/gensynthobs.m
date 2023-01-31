@@ -23,10 +23,13 @@ tsi = twotsiseries;
 
 if strcmp(scenario,'ACRIM')
     x=tsi.ACRIM;
+elseif strcmp(scenario,'ACRIM/PMOD proxy')
+    x=tsi.ACRIM;
+    xprox=tsi.PMOD;
 elseif strcmp(scenario,'PMOD')
     x=tsi.PMOD;
 else
-    error('Enter "ACRIM" or "PMOD" for the scenario input')
+    error('Enter "ACRIM", "ACRIM/PMOD proxy", or "PMOD" for the scenario input')
 end
 dateM=tsi.date;
 
@@ -41,7 +44,11 @@ proxInd=find(prox);satInd=find(~prox);
 
 %First, create synthetic data for proxies (offset and Gaussian noise)
 for ii=1:length(proxInd)
-    valS(:,proxInd(ii))=(x-mean(x)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);
+    if strcmp(scenario,'ACRIM/PMOD proxy')
+        valS(:,proxInd(ii))=(xprox-mean(xprox)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);
+    else
+        valS(:,proxInd(ii))=(x-mean(x)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);
+    end
     valS(:,proxInd(ii))=valS(:,proxInd(ii))+epsilon(proxInd(ii)).*randn(T,1);
 end
 

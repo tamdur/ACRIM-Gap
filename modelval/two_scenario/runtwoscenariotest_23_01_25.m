@@ -12,7 +12,7 @@ addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/mat_files')
 rng(1)
 
 %Load the synthetic datasets to be examined
-load 2scenario_23_01_25b.mat
+load 2scenario_23_01_31_PMODproxy.mat
 tN=length(ACRIM); %Number of synthetic datasets to be inferred
 parfor ii=1:tN
     tic;
@@ -39,7 +39,7 @@ parfor ii=1:tN
     twoTest(ii).PMOD.tRun=toc;
 end
 scriptName=mfilename;
-save('twotestcluster_23_01_25b.mat','twoTest','scriptName')
+save('twotestcluster_ACRIMsatPMODprox_23_01_31.mat','twoTest','scriptName')
 
 function [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM)
 %Return observation model values
@@ -75,7 +75,7 @@ for ii=1:size(tsiAll,2)
     BTSIAll(ii,3)=diff(BTSIAll(ii,1:2));
 end
 %Use z-score table for normal distribution to estimate uncertainty
-uncGap=(quantile(BTSIAll(:,3),0.975)-quantile(BTSIAll(:,3),0.025))./1.96;
+uncGap=(quantile(BTSIAll(:,3),0.975)-quantile(BTSIAll(:,3),0.025))./(2.*1.96);
 end
 
 
