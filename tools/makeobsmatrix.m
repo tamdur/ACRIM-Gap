@@ -8,9 +8,14 @@ dateS=getdates;
 dateR=dateS.acrimplusfive; %Load range of dates for which to incorporate observations
 removeOffsets=1; %1 to remove offsets from observations, 0 to keep native units
 satOnly=0; %1 to only use satellites, 0 to use proxies+satellites
-saveString= 'mat_files/obs_23_01_13.mat'; %Name of saved mat file
+PMOD=0;%1 to use Frohlich 2006 PMOD corrections, 0 to use original
+saveString= 'mat_files/obs_23_02_01.mat'; %Name of saved mat file
 
-paths=dir('observations/*.txt');
+if PMOD
+    paths=dir('observations_pmod/*.txt');
+else
+    paths=dir('observations/*.txt');
+end
 paths={paths.name};
 
 %First make a vector for every month in the dataset
