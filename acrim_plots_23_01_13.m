@@ -11,26 +11,36 @@ clearvars
 % PLOTS
 tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
+priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=0; %Calculate change in TSI between two periods
+gapChange=1; %Calculate change in TSI between two periods
+trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
-PMODCorrections=1; %Calculate and plot the corrections made by Frohlich
+PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
 load ar2_23_01_14.mat; %Select the output chain to plot/analyze
-obsmatrix='obs_23_01_13.mat';
+obsmatrix='obs_23_02_01.mat';
+
+%--------------------------------------------------------------------------
+% UNCOMMENT IN ORDER TO USE CARRINGTON ROTATION RATHER THAN MONTHLY SUBSETS
+% load ar2carrington_23_02_02.mat; %Select the output chain to plot/analyze
+% obsmatrix='obscarrington_23_02_02.mat';
+%--------------------------------------------------------------------------
+
+
 load(obsmatrix); %From makeobsarray.m
 valAll=valM-offsets; %Remove mean offset
 dateS=getdates;
 dates=dateS.acrimplusfive;
-dateI=dateM>=datejd(dates(1))&dateM<datejd(dates(2));
-oM=oM(dateI,:);valAll=valAll(dateI,:);dateM=dateM(dateI);
+%dateI=dateM>=datejd(dates(1))&dateM<datejd(dates(2)+4);
+%oM=oM(dateI,:);valAll=valAll(dateI,:);dateM=dateM(dateI);
 
 %Color scheme
 c1 = [51; 136; 68; 17; 153; 221; 204; 136; 170];
@@ -188,7 +198,7 @@ if tsiComparison
     saveas(gcf,'plots/tsicompare_23_02_01.png')
 end
 if priorposterior
-    datesave='23_01_14'; %Date for figure name
+    datesave='23_02_01'; %Date for figure name
     satindex=outDat.satindex;
     obsUsed=satindex;
     obsUsed(3)=true; %Turn on Bremen Mg-II
@@ -350,6 +360,160 @@ if priorposterior
     end
     saveas(gcf,['plots/priorposterior3_' datesave '.png'])
 end
+if priorposterior2
+    datesave='23_02_01'; %Date for figure name
+    satindex=outDat.satindex;
+    obsUsed=satindex;
+    obsUsed(3)=true; %Turn on Bremen Mg-II
+    obsUsed(6)=true; %Turn on SILSO spots
+    satI=find(satindex);
+    %Pull output from simulation
+    reps = outDat.reps;
+    sC = squeeze(A(:,2,:));
+    bC = squeeze(A(:,1,:));
+    mC = squeeze(A(:,3,:));
+    aP = a;
+    oP = squeeze(bC)';
+    lP = squeeze(mC(satI,:))';
+    rP = sigY;
+    H0=outDat.H0;
+    Hsig=outDat.Hsig;
+    T0=outDat.T0;
+    th0=outDat.th0;
+    %Make the data that goes in the varpdf fields for each of 3 plots
+    
+    %First, do the offset variables
+    th1M1 = H0(satI(1:end-1),1);
+    th2M1 = sqrt(Hsig(satI(1:end-1),1));
+    vals1 = oP(:,satI(1:end-1));
+    %Then, do the drift variables
+    varNames2 = ["l1";"l2";"l4";"l5";"l7"];
+    th1M2 = H0(satI,3);
+    th2M2 = sqrt(Hsig(satI,3));
+    vals2 = lP;
+    %Last, do the noise variables
+    nN=length(colLabels(satI)); %Number of noisy observers
+    varNames3=[];
+    for ii = 1:nN
+        varNames3 = [varNames3;strcat("\epsilon_{",colLabels(satI(ii)),"}")];
+    end
+    th1M3 = T0(satI);
+    th2M3 = th0(satI);
+    vals3 = rP(satI,:)'; 
+    vals3(vals3 <= 0) = NaN;
+    vals3 = vals3.^0.5;%Note 0.5 is choice to show std v var
+    distType3 = repmat("invgamma",[nN 1]);
+
+    %------------------------------------------------------------------
+    % First, plot estimated offsets 
+    %------------------------------------------------------------------
+    figure2('Position',[10 10 1000 1000])
+    subplot('position',[.09 .73 .85 .27])
+    offsetsI = satI';
+    for ii = 1:4
+        hold on
+        th1 = th1M1(ii) + offsets(offsetsI(ii));
+        th2 = th2M1(ii);
+        %Plot the prior distribution
+        x = vals1;
+        xL = min(x);xH = max(x);
+        xPrior = randraw('norm', [th1 th2], [1e5 1] );
+        xL = min([xPrior; vals1(:,ii)+ offsets(offsetsI(ii))]);
+        xH = max([xPrior;vals1(:,ii)+ offsets(offsetsI(ii))]);
+        pEdges = linspace(xL,xH,1000);
+        [yP,xP] = histcounts(xPrior,pEdges); 
+        [xP,yP,~] = histtoplot(yP,xP,50);
+        %Plot the prior
+        h(ii)=plot(xP,yP,'Color',c(2*ii,:),'LineWidth',2);
+        %Plot the posterior distribution
+        [yPost,xPost] = histcounts(vals1(:,ii)+ offsets(offsetsI(ii)),pEdges); 
+        [xPost,yPost,~] = histtoplot(yPost,xPost,10);
+        hold on
+        plot(xPost,yPost,'Color',c(2*ii,:),'LineWidth',2)
+    end
+    h(5)=line([offsets(7) offsets(7)],[0 6],'Color',c(10,:),'LineWidth',2);
+    legend(h,colLabels(offsetsI),'Location','NorthWest')
+    legend boxoff
+    xlabel("W/m^{2}")
+    set(gca,'ytick',[])
+    set(gca,'FontSize',fSize)
+    xlim([1357 1372])
+    %------------------------------------------------------------------
+    % Next, plot estimated linear drifts 
+    %------------------------------------------------------------------
+    subplot('position',[.09 .39 .85 .27])
+    offsetsI = satI';
+    numPlots = length(varNames2);
+    for ii = 1:numPlots
+        hold on
+        th1 = th1M2(ii);
+        th2 = th2M2(ii);
+        %Plot the prior distribution
+        x = vals2;
+        xL = min(x);xH = max(x);
+        xPrior = randraw('norm', [th1 th2], [1e5 1] );
+        xL = min([xPrior; vals2(:,ii)]);
+        xH = max([xPrior; vals2(:,ii)]);
+        %Plot the prior
+        pEdges = linspace(xL,xH,1000);
+        [yP,xP] = histcounts(xPrior,pEdges);
+        [xP,yP,~] = histtoplot(yP,xP,50);
+        %Plot the posterior distribution
+        [yPost,xPost] = histcounts(vals2(:,ii),pEdges); 
+        [xPost,yPost,~] = histtoplot(yPost,xPost,20);
+        hold on 
+        h(ii)=plot(xPost,yPost,'Color',c(2*ii,:),'LineWidth',3);
+    end
+    h(ii+1)=plot(xP,yP,'Color','k','LineWidth',5);
+    legendtxt=[colLabels(offsetsI);"Prior Distribution"];
+    legend(h,legendtxt,'Location','NorthWest')
+    legend boxoff
+    %xlim([quantile(vals2(:,ii),0.001) quantile(vals2(:,ii),0.999)])
+    xlabel("W/m^{2}/decade")
+    set(gca,'ytick',[])
+    set(gca,'FontSize',fSize)
+    xlim([-1 1])
+    %------------------------------------------------------------------
+    % Last, plot noise estimates
+    %------------------------------------------------------------------
+    subplot('position',[.09 .08 .85 .24])
+    numPlots = length(varNames3);
+    for ii = 1:numPlots
+        hold on
+        th1 = th1M3(ii);
+        th2 = th2M3(ii);
+        %Plot the prior distribution
+        x = vals3;
+        xL = min(x);xH = max(x);
+        %From randraw.m, form of drawing is y = randraw('gamma', [1 3 2], [1e5 1] );
+        %where inputs are location, shape, and scale parameters,
+        %respectively. Second input is number of draws
+        if strcmp(distType3(ii),"normal")
+            xPrior = randraw('norm', [th1 th2], [1e5 1] );
+            xPrior(xPrior < 0) = NaN;
+        else
+            xPrior = drawgamma(0, th1, th2, 1e5);
+        end
+        xPrior = xPrior.^0.5;
+        xL = max([min([xL(ii); min(xPrior)]); 1e-5]);
+        xH = max([xH(ii); xPrior]);
+        pEdges = logspace(log10(xL),log10(xH),1000);
+        %Plot the posterior distribution
+        [yPost,xPost] = histcounts(vals3(:,ii),pEdges); 
+        [xPost,yPost,~] = histtoplot(yPost,xPost,50);
+        hold on
+        plot(xPost,yPost,'Color',c(2*ii,:),'LineWidth',3);
+    end
+    legend(varNames3,'Location','NorthWest')
+    legend boxoff
+    xlim([0 0.4])
+    set(gca,'ytick',[])
+    set(gca,'Xtick',linspace(0,0.4,5))
+    xtickformat('%.2f')
+    xlabel("W/m^{2}")
+    set(gca,'FontSize',fSize)
+    saveas(gcf,['plots/priorposterior_' datesave '.png'])
+end
 if obsContributions
      %Plot the relative contribution of each observer to the estimate of TSI
     smoothWindow = 36;
@@ -493,7 +657,7 @@ if gapChange
     end
     xm=tsix(:,3);
     %Get other TSI reconstructions
-    load oTSI_22_10_27.mat
+    load oTSI_23_02_01.mat
     
     %Create time windows for year before and year after acrim gap
     stInt=datejd([dateS.acrim(1)-365 dateS.acrim(1)]);
@@ -512,6 +676,60 @@ if gapChange
         BTSIAll(ii,1:2)=[mean(tsiAll(stBTSI,ii)),mean(tsiAll(endBTSI,ii))];
         BTSIAll(ii,3)=diff(BTSIAll(ii,1:2));
     end
+    BTSILB=quantile(BTSIAll,0.025,1);
+    BTSIUB=quantile(BTSIAll,0.975,1);
+        
+    
+    
+    %Get PMOD (7)
+    xPMOD=oTSI(7).tsi;datePMOD=oTSI(7).datetime;
+    PMOD=[mean(xPMOD(datePMOD >= stInt(1)& datePMOD <=stInt(end)));
+        mean(xPMOD(datePMOD >=  endInt(1) & datePMOD<=endInt(end)))];
+    PMOD=[PMOD;diff(PMOD)];
+    
+    %Get SOLID (9)
+    xSOLID=oTSI(9).tsi;dateSOLID=oTSI(9).datetime;
+    SOLID=[mean(xSOLID(dateSOLID >= stInt(1)& dateSOLID <=stInt(end)));
+        mean(xSOLID(dateSOLID >=  endInt(1) & dateSOLID<=endInt(end)))];
+    SOLID=[SOLID;diff(SOLID)];
+    %Get ACRIM (6)
+    xACRIM=oTSI(6).tsi;dateACRIM=oTSI(6).datetime;
+    ACRIM=[mean(xACRIM(dateACRIM >= stInt(1)& dateACRIM <=stInt(end)));
+        mean(xACRIM(dateACRIM >=  endInt(1) & dateACRIM<=endInt(end)))];
+    ACRIM=[ACRIM;diff(ACRIM)];
+end
+if trendUnc
+    smoothWindow = 1;
+    %Load BTSI reconstruction
+    tsix = prctile((xAll+offsets(7))',[.5 5 50 95 99.5])';
+    tsiAll=xAll+offsets(7);
+    for iS = 1:size(tsix,2)
+        tsix(:,iS) = smoothPH(tsix(:,iS),smoothWindow);
+    end
+    xm=tsix(:,3);
+    %Get other TSI reconstructions
+    load oTSI_23_02_01.mat
+    
+    %Create time windows first and last year of analysis
+    stInt=[datetime(1986,1,1) datetime(1986,12,31)];
+    endInt=[datetime(1996,1,1) datetime(1996,12,31)];
+    tElapsed=years(mean(endInt)-mean(stInt))./10;
+    
+    %Get TSI at the beginning and end interval for each
+    stBTSI=dateM >= stInt(1)& dateM <=stInt(end);
+    endBTSI=dateM >=  endInt(1) & dateM<=endInt(end);
+    BTSI=[mean(xm(stBTSI));
+        mean(xm(endBTSI))];
+    BTSI=[BTSI;diff(BTSI)];
+    BTSI(3)=BTSI(3)./tElapsed;
+    
+    %Get max and min change
+    BTSIAll=zeros(size(tsiAll,2),3);
+    for ii=1:size(tsiAll,2)
+        BTSIAll(ii,1:2)=[mean(tsiAll(stBTSI,ii)),mean(tsiAll(endBTSI,ii))];
+        BTSIAll(ii,3)=diff(BTSIAll(ii,1:2));
+    end
+    BTSIAll(:,3)=BTSIAll(:,3)./tElapsed;
     BTSILB=quantile(BTSIAll,0.025,1);
     BTSIUB=quantile(BTSIAll,0.975,1);
         
@@ -586,7 +804,7 @@ if autocorr
     rhoBTSI=(xm(2:end)'*xm(1:end-1))/(xm(1:end-1)'*xm(1:end-1));
     %Assess other reconstructions
     %indices: SOLID 9 PMOD CMDF7 ACRIM 6
-    load oTSI_22_10_27.mat %From readothertsi.m in the code_22_06 directory
+    load oTSI_23_02_01.mat %From readothertsi.m in the code_22_06 directory
     stDate=dateM(1);endDate=dateM(end);
     SOLIDDate=find(oTSI(9).mthdatetime>=stDate & oTSI(9).mthdatetime<=endDate);
     PMODDate=find(oTSI(7).mthdatetime>=stDate & oTSI(7).mthdatetime<=endDate);
@@ -600,11 +818,24 @@ if autocorr
 end
 if PMODCorrections
     %Outline:
-    %-Load obsmatrix for observations
     %-Load obsmatrix for PMOD corrected observations
-    %-Plot a difference plot of the two observational matrices, subset over
-    %the ACRIM Gap period
+    load obsPMOD_23_02_01.mat
+    valP=valM;
+    %-Load obsmatrix for observations
+    load obs_23_02_01.mat
+    valO=valM;
+    %-Plot a difference plot of the two observational matrices
+    figure2
+    plot(dateM,valO-valP);
+    legend(colLabels)
     %Calculate the drift by doing linear fit
+    valD=valO-valP;
+    for ii=1:length(colLabels)
+        pred=[ones(sum(oM(:,ii)),1) t(oM(:,ii),ii)];
+        b=regress(valD(oM(:,ii),ii),pred);
+        linD(ii)=b(2);
+    end
+        
     
     
 end

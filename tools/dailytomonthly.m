@@ -1,20 +1,11 @@
-function [mthVal,mthDate,nObs] = dailytomonthly(jd,vals,idvals,id)
+function [mthVal,mthDate,nObs] = dailytomonthly(jd,vals,dateMS,dateME,idvals,id)
 % DAILYTOMONTHLY convert vector of daily data with attached julian dates to
 % a vector of averaged monthly values
-if nargin < 3
+if nargin < 5
     idvals = [];
     id = [];
 end
 
-%make a vector for every month in the dataset
-stJD = min(jd); endJD = max(jd);
-stDate = datejd(stJD); endDate = datejd(endJD);
-dateM = stDate;
-while juliandate(dateM(end)) < juliandate(endDate)
-    dateM = [dateM; dateM(end) + calmonths(1)];
-end
-dateMS = dateshift(dateM,'start','month');
-dateME = dateshift(dateM,'end','month');
 jdS = juliandate(dateMS);
 jdE = juliandate(dateME);
 mthVal = NaN(length(jdS),1);

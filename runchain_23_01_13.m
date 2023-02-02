@@ -90,7 +90,7 @@ Sigma=eye(N);  %arbitrary starting value for the variance of transition model er
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(T,size(data,2));
 
-reps=1500; %Total steps of Gibbs Sampler
+reps=10500; %Total steps of Gibbs Sampler
 burn=500; %Steps excluded in burnin period
 mm=1;%index for saved chain post-burnin
 tic

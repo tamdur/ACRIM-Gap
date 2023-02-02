@@ -9,7 +9,8 @@ dateR=dateS.acrimplusfive; %Load range of dates for which to incorporate observa
 removeOffsets=1; %1 to remove offsets from observations, 0 to keep native units
 satOnly=0; %1 to only use satellites, 0 to use proxies+satellites
 PMOD=0;%1 to use Frohlich 2006 PMOD corrections, 0 to use original
-saveString= 'mat_files/obs_23_02_01.mat'; %Name of saved mat file
+carrington=1; %1 to use carrington rotation period, 0 to use monthly average
+saveString= 'mat_files/obscarrington_23_02_02.mat'; %Name of saved mat file
 
 if PMOD
     paths=dir('observations_pmod/*.txt');
@@ -18,22 +19,31 @@ else
 end
 paths={paths.name};
 
-%First make a vector for every month in the dataset
 stJD = min(dateR); endJD = max(dateR);
 stDate = datejd(stJD); endDate = datejd(endJD);
-stDate=dateshift(stDate,'start','month');
-endDate=dateshift(endDate,'end','month');
-dateM = stDate;
-while juliandate(dateM(end)) < juliandate(endDate)
-    dateM = [dateM; dateM(end) + calmonths(1)];
+if carrington
+    %First make a vector for every carrington period 
+    dateM=stDate;
+    while juliandate(dateM(end)) < juliandate(endDate)
+        dateM = [dateM; dateM(end)+caldays(27)+hours(6)];
+    end
+    dateMS=dateM(1:end-1);
+    dateME=dateM(2:end);
+    dateM=mean([dateMS,dateME],2);
+else
+    %First make a vector for every month in the dataset
+    
+    stDate=dateshift(stDate,'start','month');
+    endDate=dateshift(endDate,'end','month');
+    dateM = stDate;
+    while juliandate(dateM(end)) < juliandate(endDate)
+        dateM = [dateM; dateM(end) + calmonths(1)];
+    end
+    dateM = dateM(1:end-1);
+    dateMS = dateshift(dateM,'start','month');
+    dateME = dateshift(dateM,'end','month');
+    dateM=mean([dateMS,dateME],2);
 end
-dateM = dateM(1:end-1);
-dateMS = dateshift(dateM,'start','month');
-dateME = dateshift(dateM,'end','month');
-dateM=mean([dateMS,dateME],2);
-
-jdS = juliandate(dateMS);
-jdE = juliandate(dateME);
 
 %Initialize the output variables
 nS=length(paths);
@@ -45,9 +55,9 @@ for ii=1:nS
     [JD,vals,name] = readobstxt(paths{ii});
     name=string(name);
     %Make monthly data
-    [mthVal,mthDate] = dailytomonthly(JD,vals);
+    [mthVal,mthDate] = dailytomonthly(JD,vals,dateMS,dateME);
     colLabels=[colLabels;string(name)];
-    for iB = 1:length(jdS)
+    for iB = 1:length(dateMS)
         iMth = mthDate >= dateMS(iB) & mthDate < dateME(iB);
         if any(iMth)
             oM(iB,ii)=true;
