@@ -1,11 +1,11 @@
-function [xAll,sigY,sigX,theta,a,A,t,outDat] = runchain_23_01_13(valM,oM,colLabels,saveFile,dispProgress)
+function [xAll,sigY,sigX,theta,a,A,t,outDat] = runchain_23_01_13(valM,oM,colLabels,opts)
 %runchain_22_04_25.m PRODUCE GIBBS SAMPLING OUTPUT OF BAYESIAN KALMAN
 %FILTER MODEL USING SATLELLITE AND PROXY DATA.
 %
 % Ted Amdur 04/25/22
 %Based upon runchain_22_03_23b.m that shows innovations with time, also
 %allows for different ar order models. The following is an
-%extensively-modified version of the code from Ex. 4 of Chapter 4 of
+%extensively-modified version of the code from Ex. 4 of Chapter 3 of
 %Applied Bayesian Econometrics for Central Bankers, by Andrew Blake and
 %Haroon Mumtaz.
 
@@ -14,8 +14,8 @@ function [xAll,sigY,sigX,theta,a,A,t,outDat] = runchain_23_01_13(valM,oM,colLabe
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 outDat.script=mfilename; %Save name of script
 
-if ~exist('valM','var') %Load default observation array, otherwise load provided one
-obsmatrix='obs_23_01_13'; %Load data array, with colLabels corresponding to observer source for each column
+if ~exist('valM','var') || isempty(valM) %Load default observation array, otherwise load provided one
+obsmatrix='obs_23_02_01'; %Load data array, with colLabels corresponding to observer source for each column
 load(obsmatrix); %From makeobsmatrix.m
 %Seven columns of valM correspond to the following observers:
 %     "ACRIM1/SMM"
@@ -28,7 +28,25 @@ load(obsmatrix); %From makeobsmatrix.m
 else
     obsmatrix='synthetic';
 end
-excludeFliers=0;%1 to remove outlier observations from examined dataset
+if ~isfield(opts,'randomizeChain') %Load default observation array, otherwise load provided one
+    opts.randomizeChain=false;
+end
+if ~isfield(opts,'excludeFliers')
+    opts.excludeFliers=false;%true to remove outlier observations from examined dataset
+end
+if ~isfield(opts,'reps')
+    opts.reps=10500; %Total steps of Gibbs Sampler
+end
+if ~isfield(opts,'burn')
+    opts.burn=500; %Steps excluded in burnin period
+end
+if ~isfield(opts,'logContributions')
+    opts.logContributions=false; %Set to true to include record of innovation contributions
+end
+if ~isfield(opts,'dispProgress')
+    opts.dispProgress=false; %Set to true to display progress of every 100 iterations
+end
+opts.normalize=false; %Set to true to normalize data within. For getpriors call
 
 %Develop a set of monthly observations from satellite and proxy
 %observations
@@ -39,7 +57,7 @@ dateCycles=dateS.cycles;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Beginning of main script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if excludeFliers %Code to remove outliers using a past run of BTSI
+if opts.excludeFliers %Code to remove outliers using a past run of BTSI
     load excludeMask_22_11_03.mat %from exclude_fliers_22_04_26.m
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
@@ -70,7 +88,6 @@ for ii=1:size(data,2)
 end
 
 %Load priors for observation model
-opts.normalize=0; %Set to 1 to normalize data within
 [H0, Hsig, T0, th0] = getpriors(NN,oindex,tindex,sindex,valM,oM,...
     satindex,colLabels,opts);
 
@@ -82,6 +99,10 @@ opts.normalize=0; %Set to 1 to normalize data within
 x0=zeros(T,1);
 guess1 = nanmean(data(:,~sindex),2); %mean of satellite observations
 x0(~isnan(guess1))=guess1(~isnan(guess1));
+if opts.randomizeChain
+    rng('shuffle')
+    x0=x0+randn(length(x0),1).*(nanstd(x0)./5);
+end
 X0=[x0(1) zeros(1,L-1)];%state vector X[t-1|t-1] of x and nth order lagged x
 ns=size(X0,2);
 V00=eye(ns);  %v[t-1|t-1]
@@ -89,12 +110,9 @@ rmat=1E9.*ones(NN,1); %arbitrary starting value for the variance of process x
 Sigma=eye(N);  %arbitrary starting value for the variance of transition model errors
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(T,size(data,2));
-
-reps=10500; %Total steps of Gibbs Sampler
-burn=500; %Steps excluded in burnin period
 mm=1;%index for saved chain post-burnin
 tic
-for m=1:reps %Gibbs sampling
+for m=1:opts.reps %Gibbs sampling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 2: sample loadings that compose H through Bayesian regression
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -150,14 +168,15 @@ alpha1=reshape(alpha,N*L+1,N);
 errorsx=Y-X*alpha1;
 
 %sample VAR covariance for time-dependent X uncertainty
-bSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
-precX=1./bSigma;
-Mx=inv(precX.*Y'*Y)*(precX*Y'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
-Vx=bSigma.*inv(Y'*Y);
-mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
-Sigma=bSigma+mSigma*Y;
-Sigma(Sigma<bSigma)=bSigma;
-Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
+% qSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
+% precX=1./qSigma;
+% Mx=inv(precX.*Y'*Y)*(precX*Y'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
+% Vx=qSigma.*inv(Y'*Y);
+% mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
+% Sigma=qSigma+mSigma*Y;
+% Sigma(Sigma<qSigma)=qSigma;
+% Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
+Sigma = epsilonmagdependent(Y,x0,X,alpha);
 
 %Create matrix of factor loadings
 H=zeros(NN,NN+L+1);
@@ -237,7 +256,7 @@ for i=T-1:-1:1
     x2(i,jv1)=bm(jv1)+(wa(i,jv1)*chol(pm(jv1,jv1)));
 end
 x0=x2(:,jv1);   %update the state variable estimate
-if dispProgress
+if opts.dispProgress
     if mod(m,100) == 0 %display progress of chain
         disp([num2str(m) ' reps completed'])
     end
@@ -246,7 +265,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 7: If burnin completed, store state and observation model estimates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if m>burn
+if m>opts.burn
     %save
     xAll(:,mm)=x2(:,1); %Reconstructed TSI
     for ii=1:NN
@@ -256,26 +275,43 @@ if m>burn
     sigY(:,mm)=rmat; %observer noise estimate
     sigX(:,mm) = Sigma; %TSI noise estimate
     theta(:,mm)=th; %Theta parameter estimate
-    outDat.contributionChain(mm,:,:)=contributionChain; %Innovation contributions
+    if opts.logContributions
+        outDat.contributionChain(mm,:,:)=contributionChain; %Innovation contributions
+    end
     mm=mm+1;
 end
     
 
 end
-if dispProgress
+if opts.dispProgress
     toc
 end
-outDat.reps=reps;outDat.burn=burn;outDat.H0=H0;outDat.Hsig=Hsig;outDat.T0=T0;
+outDat.H0=H0;outDat.Hsig=Hsig;outDat.T0=T0;
 outDat.th0=th0;outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=sindex;
 outDat.satindex=satindex;
-outDat.excludeFliers=excludeFliers;
 outDat.obsmatrix=obsmatrix;
-if ~isempty(saveFile)
-    save(saveFile,'xAll','sigY','sigX','theta','a','A','t','outDat','-v7.3')
-    out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
+outDat.opts=opts; %Save the input info
+if isfield(opts,'saveFile')
+    save(opts.saveFile,'xAll','sigY','sigX','theta','a','A','t','outDat','-v7.3')
+    %out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
 end
 
 
+end
+
+function rmat=epsilonmagdependent(Y,x0,X,alpha)
+YCycle=Y-movmean(Y,12.*11); %Solar cycle anomaly
+YCycleAll=x0-movmean(x0,12.*11,'omitnan');
+%sample VAR covariance for time-dependent X uncertainty
+errorsx=Y-X*alpha;
+bSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
+precX=1./bSigma;
+Mx=inv(precX.*YCycle'*YCycle)*(precX*YCycle'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
+Vx=bSigma.*inv(YCycle'*YCycle);
+mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
+Sigma=bSigma+mSigma*YCycleAll;
+Sigma(Sigma<bSigma)=bSigma;
+rmat=Sigma;%[Sigma(1);Sigma];%lengthen to full observation interval
 end
 
 
