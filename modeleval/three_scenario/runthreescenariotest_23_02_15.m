@@ -1,4 +1,4 @@
-function runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,rngN,savePath)
+function runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,rngN,savePath,opts)
 
 %Run three scenario synthetic data test in parallel computing environment
 % Ted Amdur
@@ -26,6 +26,12 @@ else
     rng(rngN)
 end
 
+if ~exist('opts','var') || isempty(opts)
+    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=1500; %Total length of chain, including burn-in
+    opts.dispProgress=false;
+end
+
 
 oM=setInfo.oM;
 colLabels=setInfo.colLabels;
@@ -34,7 +40,7 @@ tN=length(ACRIM); %Number of synthetic datasets to be inferred
 parfor ii=1:tN
     %Run BTSI on ACRIM scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(ACRIM(ii).valM,oM,colLabels,[],false);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(ACRIM(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).ACRIM.Aout=Aout;
     threeTest(ii).ACRIM.sigYOut=sigYOut;
@@ -46,7 +52,7 @@ parfor ii=1:tN
     
     %Run BTSI on PMOD scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(PMOD(ii).valM,oM,colLabels,[],false);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(PMOD(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).PMOD.Aout=Aout;
     threeTest(ii).PMOD.sigYOut=sigYOut;
@@ -58,7 +64,7 @@ parfor ii=1:tN
     
     %Run BTSI on A/P scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(AP(ii).valM,oM,colLabels,[],false);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(AP(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).AP.Aout=Aout;
     threeTest(ii).AP.sigYOut=sigYOut;
