@@ -1,4 +1,4 @@
-function [xAll,sigY,sigX,theta,a,A,t,outDat] = runchain_23_01_13(valM,oM,colLabels,opts)
+function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_23_01_13(valM,oM,colLabels,opts)
 %runchain_22_04_25.m PRODUCE GIBBS SAMPLING OUTPUT OF BAYESIAN KALMAN
 %FILTER MODEL USING SATLELLITE AND PROXY DATA.
 %
@@ -46,6 +46,9 @@ end
 if ~isfield(opts,'dispProgress')
     opts.dispProgress=false; %Set to true to display progress of every 100 iterations
 end
+if ~isfield(opts,'lags')
+    opts.lags=2; %Set process to AR(2)
+end
 opts.normalize=false; %Set to true to normalize data within. For getpriors call
 
 %Develop a set of monthly observations from satellite and proxy
@@ -73,18 +76,18 @@ data = valM;
 iObs = nansum(oM,1);
 T=size(data,1);
 KK=1;  %number of factors
-L=2;  %number of lags in the VAR
+L=opts.lags;  %number of lags in the VAR
 N=KK; %number of Variables in transition equation
 NN=size(data,2);% Number of observers
 
 cx = ones(T,1); %ones vector in first row of z for offset
-t =repmat(linspace(0,T./120,T)',[1 size(data,2)]); %Make time rows for t
+tau =repmat(linspace(0,T./120,T)',[1 size(data,2)]); %Make time rows for t
 for ii=1:size(data,2)
-    TM=mean(t(oM(:,ii),ii));
+    TM=mean(tau(oM(:,ii),ii));
     if isnan(TM)
         TM=0;
     end
-    t(:,ii)=t(:,ii)-TM;
+    tau(:,ii)=tau(:,ii)-TM;
 end
 
 %Load priors for observation model
@@ -118,26 +121,26 @@ for m=1:opts.reps %Gibbs sampling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 hload=[];
 error=NaN(size(data));
-for i=1:NN %loop over all observers
-    infI(:,i)=oM(:,i);
-    y=data(infI(:,i),i);
-    alpha = [cx(infI(:,i)) x0(infI(:,i)) t(infI(:,i),i)]; %This needs to be the full predictor matrix
-    precY=1./rmat(i); %Precision of observer i
-    sH=diag(Hsig(i,:));
-    M=inv(inv(sH) + precY.*alpha'*alpha)*(inv(sH)*H0(i,:)'+precY*alpha'*y);
+for ii=1:NN %loop over all observers
+    infI(:,ii)=oM(:,ii);
+    y=data(infI(:,ii),ii);
+    alpha = [cx(infI(:,ii)) x0(infI(:,ii)) tau(infI(:,ii),ii)]; %This needs to be the full predictor matrix
+    precY=1./rmat(ii); %Precision of observer i
+    sH=diag(Hsig(ii,:));
+    M=inv(inv(sH) + precY.*alpha'*alpha)*(inv(sH)*H0(ii,:)'+precY*alpha'*y);
     V=inv(inv(sH) + precY.*alpha'*alpha);
     %draw
     hf=M+(randn(1,size(alpha,2))*chol(V))';
     hload=[hload;hf']; %The factor dependent coefficients for H
-    error(infI(:,i),i)=y-alpha*hf;
+    error(infI(:,ii),ii)=y-alpha*hf;
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 3: sample variance of the observers from inverse gamma distribution
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rmat=[];
-for i=1:NN
-    rmati= IG(T0(i),th0(i),error(infI(:,i),i));
-    th(i)=error(infI(:,i),i)'*error(infI(:,i),i);
+for ii=1:NN
+    rmati= IG(T0(ii),th0(ii),error(infI(:,ii),ii));
+    th(ii)=error(infI(:,ii),ii)'*error(infI(:,ii),ii);
     rmat=[rmat rmati];
 end
 
@@ -198,39 +201,39 @@ Q=zeros(size(F,1),size(F,1));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 xp=[];          %will hold the filtered state variable x'
 vtt=zeros(T,ns,ns);    % will hold its variance
-i=1;
-Q(1:N,1:N)=Sigma(i);
-h=H(oM(i,:),:);%x is now a matrix of coefficients
+t=1;
+Q(1:N,1:N)=Sigma(t);
+h=H(oM(t,:),:);%x is now a matrix of coefficients
 ht=h(:,2:(L+1)); %subset of coefficients scaling state vectors [x_t x_t-1]
 %Prediction for the first step
-z10=[1 MU+X0*F' t(i,:)];
+z10=[1 MU+X0*F' tau(t,:)];
 v10=F*V00*F'+Q;
 yhat=(h*(z10)')';
-xi=data(i,oM(i,:))-yhat;
-fxi=(ht*v10*ht')+diag(diag(R(oM(i,:),oM(i,:))));
+xi=data(t,oM(t,:))-yhat;
+fxi=(ht*v10*ht')+diag(diag(R(oM(t,:),oM(t,:))));
 %updating
 K=(v10*ht')*inv(fxi);
-contributionChain(i,oM(i,:)) = K(1,:).*xi; %Record contribution of each obs to innovation
-z11=[1 (z10(2:(L+1))'+K*xi')' t(1,:)];
+contributionChain(t,oM(t,:)) = K(1,:).*xi; %Record contribution of each obs to innovation
+z11=[1 (z10(2:(L+1))'+K*xi')' tau(1,:)];
 v11=v10-K*(ht*v10);
 xp=[xp;z11];
-vtt(i,:,:)=v11;
+vtt(t,:,:)=v11;
 %Prediction for other steps
-for i=2:T
-    Q(1:N,1:N)=Sigma(i);
-    h=H(oM(i,:),:); %subset observation model for observers with observations at i
+for t=2:T
+    Q(1:N,1:N)=Sigma(t);
+    h=H(oM(t,:),:); %subset observation model for observers with observations at i
     ht=h(:,2:L+1); %Part of observation model responsible for scaling x
-    z10=[1 MU+z11(2:(L+1))*F' t(i,:)];
+    z10=[1 MU+z11(2:(L+1))*F' tau(t,:)];
     v10=F*v11*F'+Q;
     yhat=(h*(z10)')';
-    xi=data(i,oM(i,:))-yhat; 
-    fxi=(ht*v10*ht')+diag(diag(R(oM(i,:),oM(i,:))));
+    xi=data(t,oM(t,:))-yhat; 
+    fxi=(ht*v10*ht')+diag(diag(R(oM(t,:),oM(t,:))));
     %updating
     K=(v10*ht')*inv(fxi); %Calculate Kalman gain
-    contributionChain(i,oM(i,:)) = K(1,:).*xi;
-    z11=[1 (z10(2:(L+1))'+K*xi')' t(i,:)];
+    contributionChain(t,oM(t,:)) = K(1,:).*xi;
+    z11=[1 (z10(2:(L+1))'+K*xi')' tau(t,:)];
     v11=v10-K*(ht*v10);
-    vtt(i,:,:)=v11;
+    vtt(t,:,:)=v11;
     xp=[xp;z11];
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -243,17 +246,17 @@ wa=randn(T,ns);
 f=F(jv1,:);
 q=Q(jv1,jv1);
 mu=MU(jv1);
-i=T;  %period t
-p00=squeeze(vtt(i,jv1,jv1)); 
+t=T;  %period t
+p00=squeeze(vtt(t,jv1,jv1)); 
 %draw for updated x in time i
-x2(i,jv1)=xp(i,jv(jv1))+(wa(i,jv1)*chol(p00));   
+x2(t,jv1)=xp(t,jv(jv1))+(wa(t,jv1)*chol(p00));   
 %periods t-1..to .1
-for i=T-1:-1:1
-    Q(1:N,1:N)=Sigma(i);q=Q(jv1,jv1);
-    pt=squeeze(vtt(i,:,:));
-    bm=xp(i,jv)+(pt*f'*inv(f*pt*f'+q)*(x2(i+1,jv1)-mu-xp(i,jv)*f')')';
+for t=T-1:-1:1
+    Q(1:N,1:N)=Sigma(t);q=Q(jv1,jv1);
+    pt=squeeze(vtt(t,:,:));
+    bm=xp(t,jv)+(pt*f'*inv(f*pt*f'+q)*(x2(t+1,jv1)-mu-xp(t,jv)*f')')';
     pm=pt-pt*f'*inv(f*pt*f'+q)*f*pt;
-    x2(i,jv1)=bm(jv1)+(wa(i,jv1)*chol(pm(jv1,jv1)));
+    x2(t,jv1)=bm(jv1)+(wa(t,jv1)*chol(pm(jv1,jv1)));
 end
 x0=x2(:,jv1);   %update the state variable estimate
 if opts.dispProgress
@@ -299,7 +302,7 @@ end
 
 end
 
-function rmat=epsilonmagdependent(Y,x0,X,alpha)
+function [rmat,mSigma,bSigma]=epsilonmagdependent(Y,x0,X,alpha)
 YCycle=Y-movmean(Y,12.*11); %Solar cycle anomaly
 YCycleAll=x0-movmean(x0,12.*11,'omitnan');
 %sample VAR covariance for time-dependent X uncertainty

@@ -11,12 +11,12 @@ clearvars
 % PLOTS
 tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
-priorposterior2=0; %Plot the priors and posteriors for each observer
+priorposterior2=1; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=1; %Calculate change in TSI between two periods
+gapChange=0; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
@@ -361,7 +361,7 @@ if priorposterior
     saveas(gcf,['plots/priorposterior3_' datesave '.png'])
 end
 if priorposterior2
-    datesave='23_02_01'; %Date for figure name
+    datesave='23_02_14'; %Date for figure name
     satindex=outDat.satindex;
     obsUsed=satindex;
     obsUsed(3)=true; %Turn on Bremen Mg-II
@@ -455,7 +455,7 @@ if priorposterior2
         xL = min([xPrior; vals2(:,ii)]);
         xH = max([xPrior; vals2(:,ii)]);
         %Plot the prior
-        pEdges = linspace(xL,xH,1000);
+        pEdges = linspace(xL,xH,200);
         [yP,xP] = histcounts(xPrior,pEdges);
         [xP,yP,~] = histtoplot(yP,xP,50);
         %Plot the posterior distribution
@@ -497,7 +497,7 @@ if priorposterior2
         xPrior = xPrior.^0.5;
         xL = max([min([xL(ii); min(xPrior)]); 1e-5]);
         xH = max([xH(ii); xPrior]);
-        pEdges = logspace(log10(xL),log10(xH),1000);
+        pEdges = logspace(log10(xL),log10(xH),200);
         %Plot the posterior distribution
         [yPost,xPost] = histcounts(vals3(:,ii),pEdges); 
         [xPost,yPost,~] = histtoplot(yPost,xPost,50);
@@ -589,6 +589,9 @@ if twoScenario
     ylabel('Satellite observer error (W/m^{2})')
     set(gca,'FontSize',fSize)
     
+    %Plot a panel with the ACRIM Gap outputs
+    clear h
+    
     %load twotestcluster_23_01_25b.mat
     %load twotestcluster_ACRIMsatPMODprox_23_01_31.mat
     load twotestcluster_23_01_31.mat
@@ -627,7 +630,8 @@ if twoScenario
     hold on
     line([PMODGAP PMODGAP],[0 180],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
     hold on
-    h(3)=histogram(AP.gap,'BinWidth',0.025,'FaceColor',c(4,:));
+    h(3)=histogram(AP.gap,'BinWidth',0.025,'FaceColor',[1 0.01 0.01],...
+        'FaceAlpha',0.5,'LineStyle','--','LineWidth',1);
     
     legend(h,'ACRIM-All','CPMDF-All','ACRIM-Satellite/CPMDF-Proxy','Location','NorthWest')
     legend boxoff
@@ -641,7 +645,7 @@ if twoScenario
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/twoscenario_23_01_31.png')
+    saveas(gcf,'plots/twoscenario_23_02_11.png')
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
