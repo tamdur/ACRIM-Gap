@@ -11,9 +11,10 @@ clearvars
 % PLOTS
 tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
-priorposterior2=1; %Plot the priors and posteriors for each observer
+priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
+threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
@@ -636,6 +637,86 @@ if twoScenario
     legend(h,'ACRIM-All','CPMDF-All','ACRIM-Satellite/CPMDF-Proxy','Location','NorthWest')
     legend boxoff
     disp(['PMOD 95\% CI:' num2str(sum(PMOD.within)./size(twoTest,2),'%.2f')])
+    xlabel('ACRIM-Gap magnitude (W/m^{2})')
+    ylabel('Number of simulations')
+    set(gca,'FontSize',fSize)
+    xlim([-0.36 1])
+    
+    %Calculate the statistical power of BTSI in inferring ARIM Gap
+    PMOD_sig=quantile(PMOD.gap,.975);
+    sig_ct=sum(AP.gap>PMOD_sig);
+    stat_power=sig_ct./length(ACRIM.gap);
+    saveas(gcf,'plots/twoscenario_23_02_11.png')
+    
+end
+if threeScenario
+    fSize=16;
+    %Plot a panel with the error structure of the satellites
+    %Load synthetic datasets and results
+    load 3scenario_rng2_23_02_15.mat
+    tsi = twotsiseries;
+    Ainit=setInfo.Ainit;
+    figure2('Position',[10 10 1150 1000])
+    subplot('position',[.09 .635 .85 .35]) %Plot of proxy observations
+    %First, plot the error structure sans AR(1) 
+    satIndex=[1;2;4;5;7];
+    ind=1;
+    for ii=1:length(satIndex)
+        pred=Ainit(satIndex(ii),1)+Ainit(satIndex(ii),3).*t(:,satIndex(ii));
+        pred=pred(oM(:,satIndex(ii)));
+        h(ind)=plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2);
+        hold on
+        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-(tsi.ACRIM-nanmean(tsi.ACRIM)),'--','Color',c(2*ii,:))
+        hold on
+        ind=ind+1;
+    end
+    legend(h,colLabels(satIndex),'Location','NorthWest')
+    legend boxoff
+    xlabel('Year')
+    ylabel('Satellite observer error (W/m^{2})')
+    set(gca,'FontSize',fSize)
+    
+    %Plot a panel with the ACRIM Gap outputs
+    clear h
+    load threetestcluster_23_02_15.mat
+    PMODGAP=0.0159; %FROM THE gapChange calculation
+    ACRIMGAP=0.7057; %From the gapChange calculation
+    %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
+    ACRIM=struct;
+    PMOD=struct;
+    AP=struct;
+    for ii=1:size(threeTest,2)
+        ACRIM.gap(ii)=threeTest(ii).ACRIM.muGap;
+        ACRIM.gapUnc(ii)=threeTest(ii).ACRIM.uncGap;
+        ACRIM.sigY1(ii,:)=threeTest(ii).ACRIM.sigYOut;
+        PMOD.gap(ii)=threeTest(ii).PMOD.muGap;
+        PMOD.gapUnc(ii)=threeTest(ii).PMOD.uncGap;
+        PMOD.sigY1(ii,:)=threeTest(ii).PMOD.sigYOut;
+        %See if gap is within expected uncertainty
+        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<(2.*ACRIM.gapUnc(ii));
+        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<(2.*PMOD.gapUnc(ii));
+        AP.gap(ii)=threeTest(ii).AP.muGap;
+        AP.gapUnc(ii)=threeTest(ii).AP.uncGap;
+        AP.sigY1(ii,:)=threeTest(ii).AP.sigYOut;
+        %See if gap is within expected uncertainty
+        AP.within(ii)=abs(AP.gap(ii)-ACRIMGAP)<(2.*AP.gapUnc(ii));
+    end
+    subplot('position',[.09 .07 .85 .5]) %Plot of proxy observations
+    h(1)=histogram(ACRIM.gap,'BinWidth',0.025);
+    hold on
+    line([ACRIMGAP ACRIMGAP],[0 180],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
+    disp(['ACRIM 95\% CI:' num2str(sum(ACRIM.within)./size(threeTest,2),'%.2f')])
+    hold on
+    h(2)=histogram(PMOD.gap,'BinWidth',0.025);
+    hold on
+    line([PMODGAP PMODGAP],[0 180],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
+    hold on
+    h(3)=histogram(AP.gap,'BinWidth',0.025,'FaceColor',[1 0.01 0.01],...
+        'FaceAlpha',0.5,'LineStyle','--','LineWidth',1);
+    
+    legend(h,'ACRIM-All','CPMDF-All','ACRIM-Satellite/CPMDF-Proxy','Location','NorthWest')
+    legend boxoff
+    disp(['PMOD 95\% CI:' num2str(sum(PMOD.within)./size(threeTest,2),'%.2f')])
     xlabel('ACRIM-Gap magnitude (W/m^{2})')
     ylabel('Number of simulations')
     set(gca,'FontSize',fSize)

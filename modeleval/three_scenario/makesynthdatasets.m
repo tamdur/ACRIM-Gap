@@ -1,5 +1,5 @@
 
-function [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(rngN,savePath)
+function [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(rngN,rhoInput,savePath)
 %Make synthetic datasets for ACRIM and PMOD scenarios
 %
 % Ted Amdur
@@ -12,6 +12,10 @@ end
 nSets=1000;
 %Create starting parameters
 [Ainit,epsilon,rho,t,oM] = initobservationmodelparams;
+if exist('rhoInput','var') && ~isempty(rhoInput)
+    %Change rho if desired
+    rho=rhoInput;
+end
 %Create ACRIM and PMOD datasets
 AP=struct;
 ACRIM=struct;

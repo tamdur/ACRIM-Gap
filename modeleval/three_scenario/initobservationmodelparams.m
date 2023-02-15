@@ -31,7 +31,7 @@ Ainit(satindex,3)=A0(satindex(randperm(length(satindex))),3); %Randomly permute 
 %create observational errors for those observers
 epsilon=sqrt(mean(sigY,2));
 
-rho=0.9; %Assumed AR(1) parameter for satellites, can infer from obs in future editions
+%rho=0.9; %Assumed AR(1) parameter for satellites, can infer from obs in future editions
 
 t =repmat(linspace(0,T./120,T)',[1 N]); %Make time rows for t
 for ii=1:N

@@ -4,7 +4,8 @@
 clearvars
 lag1=0;
 lag3=0;
-synthAltH=1;
+synthAltH=0;
+synthNoRho=1;
 noERBE=0;
 altACRIM1=0;
 
@@ -37,8 +38,12 @@ if lag3
     runchain_23_01_13(valM,oM,colLabels,opts);
 end
 if synthAltH
-    [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(2);
+    [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(2,[],'3scenario_rng2__23_02_15.mat');
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_23_02_15.mat');
+end
+if synthNoRho
+    [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,0,'3scenario_23_02_15.mat');
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_15.mat');
 end
 if noERBE
 end
