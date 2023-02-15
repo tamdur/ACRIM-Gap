@@ -40,7 +40,7 @@ if lag3
 end
 if synthGeneric
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,[],[]);
-    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_generic_23_02_15.mat');
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_generic_23_02_15b.mat');
 end
 if synthAltH
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(2,[],'3scenario_rng2__23_02_15.mat');

@@ -14,19 +14,20 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=0; %Calculate change in TSI between two periods
+gapChange=1; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
+table2=0; %Calculate values for Table 2, the posterior model parameters
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-load ar2_23_01_14.mat; %Select the output chain to plot/analyze
+load ar2_23_02_15.mat; %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 
 %--------------------------------------------------------------------------
@@ -678,7 +679,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    %load threetestcluster_norho_23_02_15.mat
+    load threetestcluster_generic_23_02_15.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -881,6 +882,20 @@ if table1
     %inverse-gamma: mu=theta/(T-1)
     e0=th0./(T0'-1);
     epsilon=theta./(T'-1);
+end
+if table2
+    clear tabout
+    offsets([5,1,4,2,7])=offsets([5,1,4,2,7])-offsets(7);
+    table2order=[5;1;4;2;7;6;3];
+    for ii=1:length(colLabels)
+        ind=table2order(ii);
+        Asub=squeeze(A(ind,:,:));
+        tabout(:,ii)=[prctile(Asub(1,:),[2.5 50 97.5])'+offsets(ind);prctile(Asub(3,:),[2.5 50 97.5])';...
+            prctile(Asub(2,:),[2.5 50 97.5])';...
+            prctile(sqrt(sigY(ind,:))./Asub(2,:),[2.5 50 97.5])'];
+    end
+    rows=["mean 2.5";"mean 50";"mean 97.5";"drift 2.5";"drift 50";"drift 97.5";"scaling 2.5";"scaling 50";"scaling 97.5";"error 2.5";"error 50";"error 97.5"];
+    displayTable=array2table(tabout,'VariableNames',colLabels(table2order));
 end
 if autocorr
     smoothWindow=1;

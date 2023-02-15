@@ -171,15 +171,14 @@ alpha1=reshape(alpha,N*L+1,N);
 errorsx=Y-X*alpha1;
 
 %sample VAR covariance for time-dependent X uncertainty
-% qSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
-% precX=1./qSigma;
-% Mx=inv(precX.*Y'*Y)*(precX*Y'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
-% Vx=qSigma.*inv(Y'*Y);
-% mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
-% Sigma=qSigma+mSigma*Y;
-% Sigma(Sigma<qSigma)=qSigma;
-% Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
-Sigma = epsilonmagdependent(Y,x0,X,alpha);
+qSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
+precX=1./qSigma;
+Mx=inv(precX.*Y'*Y)*(precX*Y'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
+Vx=qSigma.*inv(Y'*Y);
+mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
+Sigma=qSigma+mSigma*Y;
+Sigma(Sigma<qSigma)=qSigma;
+Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
 
 %Create matrix of factor loadings
 H=zeros(NN,NN+L+1);
