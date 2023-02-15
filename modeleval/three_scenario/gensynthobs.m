@@ -26,10 +26,8 @@ if strcmp(scenario,'ACRIM')
 elseif strcmp(scenario,'ACRIM/PMOD proxy')
     x=tsi.ACRIM;
     xprox=tsi.PMOD;
-elseif strcmp(scenario,'PMOD')
+else 
     x=tsi.PMOD;
-else
-    error('Enter "ACRIM", "ACRIM/PMOD proxy", or "PMOD" for the scenario input')
 end
 dateM=tsi.date;
 
