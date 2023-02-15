@@ -653,7 +653,7 @@ if threeScenario
     fSize=16;
     %Plot a panel with the error structure of the satellites
     %Load synthetic datasets and results
-    load 3scenario_rng2_23_02_15.mat
+    load 3scenario_23_02_15.mat
     tsi = twotsiseries;
     Ainit=setInfo.Ainit;
     figure2('Position',[10 10 1150 1000])
@@ -678,7 +678,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_23_02_15.mat
+    %load threetestcluster_norho_23_02_15.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -915,6 +915,7 @@ if PMODCorrections
     legend(colLabels)
     %Calculate the drift by doing linear fit
     valD=valO-valP;
+    valD(1:20,1)=NaN;oM(1:20,1)=false; %Turn off first 20 months of ACRIM1
     for ii=1:length(colLabels)
         pred=[ones(sum(oM(:,ii)),1) t(oM(:,ii),ii)];
         b=regress(valD(oM(:,ii),ii),pred);
