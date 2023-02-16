@@ -10,17 +10,5 @@ To get started, type doc.
 For product information, visit www.mathworks.com.
  
 Starting parallel pool (parpool) using the 'local' profile ...
-connected to 32 workers.
-
-ans = 
-
- Pool with properties: 
-
-            Connected: true
-           NumWorkers: 32
-              Cluster: local
-        AttachedFiles: {}
-    AutoAddClientPath: true
-          IdleTimeout: 30 minutes (30 minutes remaining)
-          SpmdEnabled: true
-
+connected to 12 workers.
+connected to 12 workers.
