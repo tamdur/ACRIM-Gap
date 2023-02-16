@@ -4,7 +4,7 @@
 #SBATCH -e runalts.err
 #SBATCH -N 1
 #SBATCH -c 32
-#SBATCH -t 0-01:30
+#SBATCH -t 0-06:30
 #SBATCH -p huce_cascade
 #SBATCH --mem=64G
 #SBATCH --mail-type=END

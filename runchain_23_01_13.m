@@ -295,7 +295,7 @@ outDat.obsmatrix=obsmatrix;
 outDat.opts=opts; %Save the input info
 outDat.runDate=datetime;
 if isfield(opts,'saveFile')
-    save(opts.saveFile,'xAll','sigY','sigX','theta','a','A','t','outDat','-v7.3')
+    save(opts.saveFile,'xAll','sigY','sigX','theta','a','A','tau','outDat','-v7.3')
     %out1x=prctile(xAll',[10 20 30 40 50 60 70 80 90])';
 end
 

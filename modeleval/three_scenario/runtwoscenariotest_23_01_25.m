@@ -1,39 +1,35 @@
-function runtwoscenariotest_23_01_25(ACRIM,PMOD,setInfo,rngN)
-
 %Run two scenario synthetic data test in parallel computing environment
 % Ted Amdur
 % 2023/01/25
 
-% parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
-% %Make sure everything is visible
-% addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
-% addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')
-% addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval')
-% addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval/three_scenario')
-% addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools/BoE')
-% addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/mat_files')
+parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+%Make sure everything is visible
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval/three_scenario')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools/BoE')
+addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/mat_files')
 
-if ~exist('ACRIM','var') || ~exist('PMOD','var') || ~exist('AP','var') ||...
-        isempty(ACRIM) || isempty(PMOD) || isempty(AP)
-    %Load the synthetic datasets to be examined
-    load 2scenario_23_01_31.mat
-end
+load 2scenario_23_01_31.mat
 
-if ~exist('rngN','var') || isempty(rngN)
-    rng(1)
-else
-    rng(rngN)
-end
+rng(1)
+
 
 
 oM=setInfo.oM;
 colLabels=setInfo.colLabels;
 dateM=setInfo.dateM;
 tN=length(ACRIM); %Number of synthetic datasets to be inferred
+
+%Make options struct for runchain
+opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+opts.reps=1500; %Total length of chain, including burn-in
+opts.dispProgress=false;
 parfor ii=1:tN
     tic;
     %Run BTSI on ACRIM scenario
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(ACRIM(ii).valM,oM,colLabels,[],false);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(ACRIM(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     twoTest(ii).ACRIM.Aout=Aout;
     twoTest(ii).ACRIM.sigYOut=sigYOut;
@@ -44,7 +40,7 @@ parfor ii=1:tN
     twoTest(ii).ACRIM.tRun=toc;
     
     %Run BTSI on PMOD scenario
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(PMOD(ii).valM,oM,colLabels,[],false);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(PMOD(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     twoTest(ii).PMOD.Aout=Aout;
     twoTest(ii).PMOD.sigYOut=sigYOut;
@@ -55,8 +51,7 @@ parfor ii=1:tN
     twoTest(ii).PMOD.tRun=toc;
 end
 scriptName=mfilename;
-save('threetestcluster_23_02_15.mat','twoTest','scriptName')
-end
+save('twotestcluster_23_02_16.mat','twoTest','scriptName')
 
 function [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM)
 %Return observation model values

@@ -4,9 +4,10 @@
 clearvars
 lag1=0;
 lag3=0;
-synthGeneric=1;
+synthGeneric=0;
 synthAltH=0;
 synthNoRho=0;
+largeSynth=1;
 noERBE=0;
 altACRIM1=0;
 
@@ -50,6 +51,14 @@ if synthNoRho
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,0,'3scenario_23_02_15.mat');
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_15.mat');
 end
+if largeSynth
+    for ii=2:11
+        savePth=['threetestcluster_rng' num2str(ii) '_23_02_16.mat'];
+        [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,0,'3scenario_23_02_15.mat');
+        runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth);
+    end
+end
+        
 if noERBE
     load obs_23_02_01.mat
     valM(:,4)=NaN;oM(:,4)=false; %Turn off ERBE

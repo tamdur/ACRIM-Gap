@@ -14,20 +14,21 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=1; %Calculate change in TSI between two periods
+gapChange=0; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
 table2=0; %Calculate values for Table 2, the posterior model parameters
+tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-load ar2_23_02_15.mat; %Select the output chain to plot/analyze
+load ar2_23_01_14.mat; %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 
 %--------------------------------------------------------------------------
@@ -679,7 +680,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_generic_23_02_15.mat
+    load threetestcluster_generic_23_02_15b.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -897,11 +898,19 @@ if table2
     rows=["mean 2.5";"mean 50";"mean 97.5";"drift 2.5";"drift 50";"drift 97.5";"scaling 2.5";"scaling 50";"scaling 97.5";"error 2.5";"error 50";"error 97.5"];
     displayTable=array2table(tabout,'VariableNames',colLabels(table2order));
 end
+if tableSynthH
+    load 3scenario_23_02_15.mat
+    table2order=[5;1;4;2;7;6;3];
+    offsets([5,1,4,2,7])=offsets([5,1,4,2,7])-offsets(7);
+    Ainit=setInfo.Ainit;
+    Ainit([5,1,4,2,7],1)=Ainit([5,1,4,2,7],1)+offsets([5,1,4,2,7])';
+    Ainit=Ainit(table2order,:);
+end
 if autocorr
     smoothWindow=1;
     xm=mean(xAll,2);
     xm=smoothPH(xm-nanmean(xm),smoothWindow);
-    rhoBTSI=(xm(2:end)'*xm(1:end-1))/(xm(1:end-1)'*xm(1:end-1));
+    rhoBTSI=rhoAR1(xm(2:end),xm(1:end-1));
     %Assess other reconstructions
     %indices: SOLID 9 PMOD CMDF7 ACRIM 6
     load oTSI_23_02_01.mat %From readothertsi.m in the code_22_06 directory
@@ -912,9 +921,13 @@ if autocorr
     SOLID=oTSI(9).mthtsi(SOLIDDate);SOLID=smoothPH(SOLID-nanmean(SOLID),smoothWindow);
     PMOD=oTSI(7).mthtsi(PMODDate);PMOD=smoothPH(PMOD-nanmean(PMOD),smoothWindow);
     ACRIM=oTSI(6).mthtsi(ACRIMDate);ACRIM=smoothPH(ACRIM-nanmean(ACRIM),smoothWindow);
-    rhoSOLID=(SOLID(2:end)'*SOLID(1:end-1))/(SOLID(1:end-1)'*SOLID(1:end-1));
-    rhoPMOD=(PMOD(2:end)'*PMOD(1:end-1))/(PMOD(1:end-1)'*PMOD(1:end-1));
-    rhoACRIM=(ACRIM(2:end)'*ACRIM(1:end-1))/(ACRIM(1:end-1)'*ACRIM(1:end-1));
+    rhoSOLID=rhoAR1(SOLID(2:end),SOLID(1:end-1));
+    rhoPMOD=rhoAR1(PMOD(2:end),PMOD(1:end-1));
+    rhoACRIM=rhoAR1(ACRIM(2:end),ACRIM(1:end-1));
+    rSOLID=xcorr(SOLID,1,'coeff');rSOLID=rSOLID(3);
+    rPMOD=xcorr(PMOD,1,'coeff');rPMOD=rPMOD(3);
+    rACRIM=xcorr(ACRIM,1,'coeff');rACRIM=rACRIM(3);
+    rBTSI=xcorr(xm,1,'coeff');rBTSI=rBTSI(3);
 end
 if PMODCorrections
     %Outline:
@@ -950,7 +963,9 @@ for ii=1:size(x,2)
     xout(xout(:,ii)<-1.*mean(x(sorceI,ii)),ii)=-1.*mean(x(sorceI,ii));
 end
 end
-
-    
+function rho=rhoAR1(xt,xtminus1)
+    rho=(xtminus1'*xt)/(xtminus1'*xtminus1);
+end
+% function rho=a
     
     
