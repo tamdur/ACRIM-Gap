@@ -14,7 +14,7 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
@@ -23,7 +23,7 @@ posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
 table2=0; %Calculate values for Table 2, the posterior model parameters
-tableSynthH=0; %Show observer errors used in synthetic experiment
+tableSynthH=1; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -905,6 +905,7 @@ if tableSynthH
     Ainit=setInfo.Ainit;
     Ainit([5,1,4,2,7],1)=Ainit([5,1,4,2,7],1)+offsets([5,1,4,2,7])';
     Ainit=Ainit(table2order,:);
+    outTable=table(colLabels(table2order),Ainit);
 end
 if autocorr
     smoothWindow=1;

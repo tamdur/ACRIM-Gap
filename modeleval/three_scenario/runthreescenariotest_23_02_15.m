@@ -4,7 +4,7 @@ function runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,rngN,savePath,opts)
 % Ted Amdur
 % 2023/02/15
 
-parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+%parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
 %Make sure everything is visible
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')

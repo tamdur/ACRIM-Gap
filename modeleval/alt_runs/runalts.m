@@ -52,11 +52,10 @@ if synthNoRho
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_15.mat');
 end
 if largeSynth
-    for ii=2:11
-        savePth=['threetestcluster_rng' num2str(ii) '_23_02_16.mat'];
-        [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,0,'3scenario_23_02_15.mat');
-        runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth);
-    end
+    ii=3;
+    savePth=['threetestcluster_rng' num2str(ii) '_23_02_16.mat'];
+    [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,0,[]);
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth);
 end
         
 if noERBE
