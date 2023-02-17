@@ -98,6 +98,9 @@ for iP=1:length(proxI)
     Hsig(proxI(iP),3)=1E-12.*ones(length(proxI(iP)),1); %Fix slope
     H0(proxI(iP),2)=obsPrior(proxI(iP)).m; %Proxy Scaling uncertainty prior
 end
+if isfield(opts,'HsigScale')
+    Hsig=Hsig.*opts.HsigScale;
+end
 %Next, draw a range of initial hyperparameters for the prior noise variance
 iObs=sum(oM,1);
 T0=ceil(iObs.*(priFrac./(1-priFrac))); %Assumes std from intercomparison

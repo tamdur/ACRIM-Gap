@@ -17,6 +17,8 @@ addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/mat_files')
 if ~exist('ACRIM','var') || ~exist('PMOD','var') || ~exist('AP','var') ||...
         isempty(ACRIM) || isempty(PMOD) || isempty(AP)
     %Load the synthetic datasets to be examined
+    load 2scenario_23_01_31_PMODProxyb.mat
+    AP=ACRIM;
     load 2scenario_23_01_31.mat
 end
 

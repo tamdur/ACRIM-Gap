@@ -61,7 +61,7 @@ dateCycles=dateS.cycles;
 % Beginning of main script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if opts.excludeFliers %Code to remove outliers using a past run of BTSI
-    load excludeMask_22_11_03.mat %from exclude_fliers_22_04_26.m
+    %load excludeMask_22_11_03.mat %from exclude_fliers_22_04_26.m
     valM(excludeMask) = NaN;
     oM(excludeMask) = false;
 end
@@ -171,14 +171,15 @@ alpha1=reshape(alpha,N*L+1,N);
 errorsx=Y-X*alpha1;
 
 %sample VAR covariance for time-dependent X uncertainty
-qSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
-precX=1./qSigma;
-Mx=inv(precX.*Y'*Y)*(precX*Y'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
-Vx=qSigma.*inv(Y'*Y);
-mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
-Sigma=qSigma+mSigma*Y;
-Sigma(Sigma<qSigma)=qSigma;
-Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
+% qSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
+% precX=1./qSigma;
+% Mx=inv(precX.*Y'*Y)*(precX*Y'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
+% Vx=qSigma.*inv(Y'*Y);
+% mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
+% Sigma=qSigma+mSigma*Y;
+% Sigma(Sigma<qSigma)=qSigma;
+% Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
+[Sigma,~,~]=epsilonmagdependent(Y,x0,X,alpha);
 
 %Create matrix of factor loadings
 H=zeros(NN,NN+L+1);

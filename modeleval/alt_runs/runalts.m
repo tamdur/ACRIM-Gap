@@ -23,7 +23,7 @@ addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/chain_output
 
 if lag1
     load obs_23_02_01.mat
-    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.lags=1;
@@ -32,7 +32,7 @@ if lag1
 end
 if lag3
     load obs_23_02_01.mat
-    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.lags=3;
@@ -52,8 +52,12 @@ if synthNoRho
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_15.mat');
 end
 if largeSynth
-    ii=8;
-    savePth=['threetestcluster_rng' num2str(ii) '_23_02_16.mat'];
+    ii=2;
+    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=1500; %Total length of chain, including burn-in
+    opts.dispProgress=false;
+    opts.HsigScale=4; %Change the variance parameters of Hsig by scaling factor
+    savePth=['threetestcluster_rng' num2str(ii) '_23_02_17.mat'];
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,0,[]);
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth);
 end
@@ -61,7 +65,7 @@ end
 if noERBE
     load obs_23_02_01.mat
     valM(:,4)=NaN;oM(:,4)=false; %Turn off ERBE
-    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.logContributions=false;
@@ -71,7 +75,7 @@ end
 if altACRIM1
     load obs_23_02_01.mat
     valM(1:20,1)=NaN;oM(1:20,1)=false; %Turn off first 20 months of ACRIM1
-    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.logContributions=false;

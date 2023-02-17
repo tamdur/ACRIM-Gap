@@ -9,7 +9,7 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =0; %plot Figure 1 of manuscript
+tsiComparison =1; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
@@ -23,13 +23,15 @@ posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
 table2=0; %Calculate values for Table 2, the posterior model parameters
-tableSynthH=1; %Show observer errors used in synthetic experiment
+tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-load ar2_23_01_14.mat; %Select the output chain to plot/analyze
+load ar2_23_02_17.mat; %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
+
+%
 
 %--------------------------------------------------------------------------
 % UNCOMMENT IN ORDER TO USE CARRINGTON ROTATION RATHER THAN MONTHLY SUBSETS
@@ -74,7 +76,7 @@ if tsiComparison
     smoothWindow = 6; %set smoothing (months)
     
     figure2('Position',[10 10 1000 1500])
-    subplot('position',[.09 .85 .85 .13]) %Plot of proxy observations
+    subplot('position',[.09 .85 .81 .13]) %Plot of proxy observations
     yyaxis left
     fill(ca,[0 0 350 350],[.85 .85 .85],'FaceAlpha',...
         0.4,'LineStyle','none');
@@ -90,8 +92,9 @@ if tsiComparison
     yyaxis left
     ylim([0 300])
     set(gca,'FontSize',fSize)
+    text(datetime(1984,7,1),325,'(a)','FontSize',fSize)
     
-    subplot('position',[.09 .575 .85 .25]) %Plot of satellite observations
+    subplot('position',[.09 .545 .82 .25]) %Plot of satellite observations
     fill(ca,[1360 1360 1375 1375],[.85 .85 .85],'FaceAlpha',...
         0.4,'LineStyle','none');
     hold on
@@ -122,12 +125,13 @@ if tsiComparison
     legend(hh,colLabels(3:end))
     legend boxoff
     ylabel('TSI (W/m^{2})')
+    text(datetime(1984,7,1),1374.6,'(b)','FontSize',fSize)
     set(gca,'FontSize',fSize)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Plot of reconstructions
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    subplot('position',[.09 .06 .85 .49]) 
+    subplot('position',[.09 .06 .82 .43]) 
     fill(ca,[-2 -2 2 2],[.85 .85 .85],'FaceAlpha',...
         0.4,'LineStyle','none');
     hold on
@@ -198,6 +202,7 @@ if tsiComparison
     ylabel('TSI anomaly from 1985-1995 mean (W/m^{2})')
     xlim([datejd(dates(1)) datejd(dates(2))])
     ylim([-0.9 1.25])
+    text(datetime(1984,7,1),1.3,'(c)','FontSize',fSize)
     saveas(gcf,'plots/tsicompare_23_02_01.png')
 end
 if priorposterior
@@ -364,7 +369,7 @@ if priorposterior
     saveas(gcf,['plots/priorposterior3_' datesave '.png'])
 end
 if priorposterior2
-    datesave='23_02_14'; %Date for figure name
+    datesave='23_02_16'; %Date for figure name
     satindex=outDat.satindex;
     obsUsed=satindex;
     obsUsed(3)=true; %Turn on Bremen Mg-II
@@ -411,7 +416,7 @@ if priorposterior2
     % First, plot estimated offsets 
     %------------------------------------------------------------------
     figure2('Position',[10 10 1000 1000])
-    subplot('position',[.09 .73 .85 .27])
+    subplot('position',[.09 .73 .85 .24])
     offsetsI = satI';
     for ii = 1:4
         hold on
@@ -441,10 +446,11 @@ if priorposterior2
     set(gca,'ytick',[])
     set(gca,'FontSize',fSize)
     xlim([1357 1372])
+    text(1357.15,6.35,'(a)','FontSize',fSize+6)
     %------------------------------------------------------------------
     % Next, plot estimated linear drifts 
     %------------------------------------------------------------------
-    subplot('position',[.09 .39 .85 .27])
+    subplot('position',[.09 .4 .85 .24])
     offsetsI = satI';
     numPlots = length(varNames2);
     for ii = 1:numPlots
@@ -476,6 +482,7 @@ if priorposterior2
     set(gca,'ytick',[])
     set(gca,'FontSize',fSize)
     xlim([-1 1])
+    text(-0.98,4.25,'(b)','FontSize',fSize+6)
     %------------------------------------------------------------------
     % Last, plot noise estimates
     %------------------------------------------------------------------
@@ -515,6 +522,7 @@ if priorposterior2
     xtickformat('%.2f')
     xlabel("W/m^{2}")
     set(gca,'FontSize',fSize)
+    text(0.0055,32,'(c)','FontSize',fSize+6)
     saveas(gcf,['plots/priorposterior_' datesave '.png'])
 end
 if obsContributions
@@ -595,9 +603,9 @@ if twoScenario
     %Plot a panel with the ACRIM Gap outputs
     clear h
     
-    %load twotestcluster_23_01_25b.mat
-    %load twotestcluster_ACRIMsatPMODprox_23_01_31.mat
-    load twotestcluster_23_01_31.mat
+
+   % load twotestcluster_23_01_31.mat
+   load twotestcluster_23_02_16.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -652,14 +660,13 @@ if twoScenario
     
 end
 if threeScenario
-    fSize=16;
     %Plot a panel with the error structure of the satellites
     %Load synthetic datasets and results
     load 3scenario_23_02_15.mat
     tsi = twotsiseries;
     Ainit=setInfo.Ainit;
     figure2('Position',[10 10 1150 1000])
-    subplot('position',[.09 .635 .85 .35]) %Plot of proxy observations
+    subplot('position',[.09 .61 .88 .35]) %Plot of proxy observations
     %First, plot the error structure sans AR(1) 
     satIndex=[1;2;4;5;7];
     ind=1;
@@ -668,7 +675,7 @@ if threeScenario
         pred=pred(oM(:,satIndex(ii)));
         h(ind)=plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2);
         hold on
-        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-(tsi.ACRIM-nanmean(tsi.ACRIM)),'--','Color',c(2*ii,:))
+        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-(tsi.ACRIM-nanmean(tsi.ACRIM)),'--','Color',c(2*ii,:),'LineWidth',1.5)
         hold on
         ind=ind+1;
     end
@@ -677,10 +684,11 @@ if threeScenario
     xlabel('Year')
     ylabel('Satellite observer error (W/m^{2})')
     set(gca,'FontSize',fSize)
+    text(datetime(1984,7,1),1.1,'(a)','FontSize',fSize+6)
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_generic_23_02_15b.mat
+    load threetestcluster_rng11_23_02_16.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -703,7 +711,7 @@ if threeScenario
         %See if gap is within expected uncertainty
         AP.within(ii)=abs(AP.gap(ii)-ACRIMGAP)<(2.*AP.gapUnc(ii));
     end
-    subplot('position',[.09 .07 .85 .5]) %Plot of proxy observations
+    subplot('position',[.09 .07 .88 .48]) %Plot of proxy observations
     h(1)=histogram(ACRIM.gap,'BinWidth',0.025);
     hold on
     line([ACRIMGAP ACRIMGAP],[0 180],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
@@ -719,16 +727,16 @@ if threeScenario
     legend(h,'ACRIM-All','CPMDF-All','ACRIM-Satellite/CPMDF-Proxy','Location','NorthWest')
     legend boxoff
     disp(['PMOD 95\% CI:' num2str(sum(PMOD.within)./size(threeTest,2),'%.2f')])
-    xlabel('ACRIM-Gap magnitude (W/m^{2})')
+    xlabel('ACRIM-Gap change (W/m^{2})')
     ylabel('Number of simulations')
     set(gca,'FontSize',fSize)
-    xlim([-0.36 1])
-    
+    xlim([-0.39 1])
+    text(-.38,186,'(b)','FontSize',fSize+6)
     %Calculate the statistical power of BTSI in inferring ARIM Gap
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/twoscenario_23_02_11.png')
+    saveas(gcf,'plots/twoscenario_23_02_16.png')
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
