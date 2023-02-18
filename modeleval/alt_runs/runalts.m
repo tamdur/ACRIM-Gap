@@ -52,7 +52,7 @@ if synthNoRho
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_15.mat');
 end
 if largeSynth
-    ii=2;
+    ii=1;
     opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=1500; %Total length of chain, including burn-in
     opts.dispProgress=false;
