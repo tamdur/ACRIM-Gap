@@ -42,9 +42,6 @@ for ii=1:N
     t(:,ii)=t(:,ii)-TM;
 end
 
-
-
-
 thresh=48; %Threshold for using overlapping observers be it years or months
 %Generate prior hyperparameter estimates 
 nObs = length(colLabels);

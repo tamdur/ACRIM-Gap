@@ -57,7 +57,7 @@ if largeSynth
     opts.reps=1500; %Total length of chain, including burn-in
     opts.dispProgress=false;
     opts.HsigScale=4; %Change the variance parameters of Hsig by scaling factor
-    savePth=['threetestcluster_rng' num2str(ii) '_23_02_17.mat'];
+    savePth=['threetestcluster_rng' num2str(ii) '_23_02_18.mat'];
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,0,[]);
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth);
 end

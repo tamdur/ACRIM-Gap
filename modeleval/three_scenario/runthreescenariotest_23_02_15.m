@@ -50,6 +50,7 @@ parfor ii=1:tN
     threeTest(ii).ACRIM.sigYUnc=sigYUnc;
     threeTest(ii).ACRIM.muGap=muGap;
     threeTest(ii).ACRIM.uncGap=uncGap;
+    threeTest(ii).ACRIM.xm=mean(xAll,2);
     threeTest(ii).ACRIM.tRun=toc;
     
     %Run BTSI on PMOD scenario
@@ -62,7 +63,9 @@ parfor ii=1:tN
     threeTest(ii).PMOD.sigYUnc=sigYUnc;
     threeTest(ii).PMOD.muGap=muGap;
     threeTest(ii).PMOD.uncGap=uncGap;
+    threeTest(ii).PMOD.xm=mean(xAll,2);
     threeTest(ii).PMOD.tRun=toc;
+    
     
     %Run BTSI on A/P scenario
     tic;
@@ -74,6 +77,7 @@ parfor ii=1:tN
     threeTest(ii).AP.sigYUnc=sigYUnc;
     threeTest(ii).AP.muGap=muGap;
     threeTest(ii).AP.uncGap=uncGap;
+    threeTest(ii).AP.xm=mean(xAll,2);
     threeTest(ii).AP.tRun=toc;
 end
 scriptName=mfilename;

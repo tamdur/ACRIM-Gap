@@ -9,12 +9,12 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =1; %plot Figure 1 of manuscript
+tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
@@ -30,6 +30,10 @@ PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 fSize = 20;
 load ar2_23_02_17.mat; %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
+
+if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
+    tau=t;
+end
 
 %
 
@@ -671,7 +675,7 @@ if threeScenario
     satIndex=[1;2;4;5;7];
     ind=1;
     for ii=1:length(satIndex)
-        pred=Ainit(satIndex(ii),1)+Ainit(satIndex(ii),3).*t(:,satIndex(ii));
+        pred=Ainit(satIndex(ii),1)+Ainit(satIndex(ii),3).*tau(:,satIndex(ii));
         pred=pred(oM(:,satIndex(ii)));
         h(ind)=plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2);
         hold on
@@ -688,7 +692,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_rng11_23_02_16.mat
+    load threetestcluster_rng10_23_02_17.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
