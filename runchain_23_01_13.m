@@ -54,8 +54,6 @@ opts.normalize=false; %Set to true to normalize data within. For getpriors call
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
-dateCycles=dateS.cycles;
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Beginning of main script

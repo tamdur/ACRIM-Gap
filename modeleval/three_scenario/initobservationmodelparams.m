@@ -22,7 +22,7 @@ load ar2_23_01_14.mat
 
 A0=mean(A,3);
 Ainit=zeros(size(A0));
-Ainit(:,2)=A0(:,2); Ainit(3,2)=0.01; Ainit(6,2)=150; %Create scaling for Mg-II, spots
+Ainit(:,2)=A0(:,2); Ainit(3,2)=0.013; Ainit(6,2)=145; %Create scaling for Mg-II, spots, drawn from NRLTSI
 Ainit(:,1)=0.5.*randn(7,1); %Create random offsets
 Ainit(:,1)=Ainit(:,1).*Ainit(:,2); %Use scaling on offsets
 Ainit(satindex,3)=A0(satindex(randperm(length(satindex))),3); %Randomly permute satellite drifts

@@ -10,36 +10,66 @@ if nargin<10
     proxInd=find(isProx);
     satInd=find(satindex);
     
-    %Make a set of priors for the proxy observations using all satellites
-    for ii = 1:sum(isProx)
-        ind=proxInd(ii);
-        iS = 1;
-        vProx = [];
-        bProx = [];
-        bIntProx = [];
-        threshUsed=thresh;
-        while iS <= nObs
-            if ~any(iS==proxInd) %only operate on satellites
-                overlap = and(oM(:,iS),oM(:,ind));
-                if sum(overlap) >= threshUsed %5 year cutoff for comparison to be made
-                    %Revised 9/8/21 to be in native units
-                    pred=[ones(sum(overlap),1) valM(overlap,iS)-nanmean(valM(overlap,iS))];
-                    [b,bint] = regress(valM(overlap,ind),pred);
-                    res = valM(overlap,ind) - pred*b;
-                    vProx = [vProx; nanvar(res,1)];
-                    bProx = [bProx; b'];
-                    bIntProx = [bIntProx; bint(2,:)];
-                end
-            end
-            iS = iS + 1;
+    %Use NRLTSI relationship between sunspots, mg-II and TSI to set priors
+    if isfield(opts,'NRLTSIprior') && opts.NRLTSIprior==true
+        load oTSI_23_02_01.mat
+        valT=valM;oMT=oM; %Temporarily save input values 
+        load obs_23_02_01.mat
+        dateS=getdates;
+        dateR=dateS.acrimplusfive;
+        tsiNRL=oTSI(4).mthtsi;
+        dateNRL=oTSI(4).mthdatetime;
+        x=tsiNRL(dateNRL>=datejd(dateR(1)) & dateNRL <= datejd(dateR(end)));
+        x=x-nanmean(x);
+        for ii=1:sum(isProx)
+            overlap = oM(:,proxInd(ii));
+            y=valM(overlap,proxInd(ii));
+            pred=[ones(length(y),1) x(overlap)];
+            b=regress(y,pred);
+            res = y - pred*b;
+            obsPrior(proxInd(ii)).type = "process";
+            obsPrior(proxInd(ii)).name = colLabels(proxInd(ii));
+            obsPrior(proxInd(ii)).std = nanstd(res);
+            obsPrior(proxInd(ii)).b = b(1);
+            obsPrior(proxInd(ii)).m = b(2);
+            obsPrior(proxInd(ii)).bsig = b(2).*.25; %One sigma uncertainty in offset
+            obsPrior(proxInd(ii)).msig = b(2).*.25; %One sigma uncertainty in scaling
         end
-        obsPrior(proxInd(ii)).type = "process";
-        obsPrior(proxInd(ii)).name = colLabels(ind);
-        obsPrior(proxInd(ii)).std = sqrt(nanmean(vProx));
-        obsPrior(proxInd(ii)).b = mean(bProx(:,1));
-        obsPrior(proxInd(ii)).m = mean(bProx(:,2));
-        obsPrior(proxInd(ii)).bsig = std(bProx(:,1)); %One sigma uncertainty in offset
-        obsPrior(proxInd(ii)).msig = std(bProx(:,2)); %One sigma uncertainty in scaling
+        valM=valT;oM=oMT; %Restore original values
+        
+    %Use raw observations to set priors, RISK OF REGRESSION DILUTION
+    else
+        %Make a set of priors for the proxy observations using all satellites
+        for ii = 1:sum(isProx)
+            ind=proxInd(ii);
+            iS = 1;
+            vProx = [];
+            bProx = [];
+            bIntProx = [];
+            threshUsed=thresh;
+            while iS <= nObs
+                if ~any(iS==proxInd) %only operate on satellites
+                    overlap = and(oM(:,iS),oM(:,ind));
+                    if sum(overlap) >= threshUsed %5 year cutoff for comparison to be made
+                        %Revised 9/8/21 to be in native units
+                        pred=[ones(sum(overlap),1) valM(overlap,iS)-nanmean(valM(overlap,iS))];
+                        [b,bint] = regress(valM(overlap,ind),pred);
+                        res = valM(overlap,ind) - pred*b;
+                        vProx = [vProx; nanvar(res,1)];
+                        bProx = [bProx; b'];
+                        bIntProx = [bIntProx; bint(2,:)];
+                    end
+                end
+                iS = iS + 1;
+            end
+            obsPrior(proxInd(ii)).type = "process";
+            obsPrior(proxInd(ii)).name = colLabels(ind);
+            obsPrior(proxInd(ii)).std = sqrt(nanmean(vProx));
+            obsPrior(proxInd(ii)).b = mean(bProx(:,1));
+            obsPrior(proxInd(ii)).m = mean(bProx(:,2));
+            obsPrior(proxInd(ii)).bsig = std(bProx(:,1)); %One sigma uncertainty in offset
+            obsPrior(proxInd(ii)).msig = std(bProx(:,2)); %One sigma uncertainty in scaling
+        end
     end
     
     %Then, make a set of comparisons between all the primary observers

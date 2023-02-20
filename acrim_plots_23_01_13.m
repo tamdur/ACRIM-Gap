@@ -14,7 +14,7 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
@@ -26,6 +26,7 @@ table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
+threeScenarioAnalysis=1; %Analyze output of three scenario test for debugging purposes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
 load ar2_23_02_17.mat; %Select the output chain to plot/analyze
@@ -692,7 +693,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_rng10_23_02_17.mat
+    load threetestcluster_rng3_23_02_18.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -966,6 +967,39 @@ if PMODCorrections
     
     
 end
+if threeScenarioAnalysis
+    load threetestcluster_rng3_23_02_18.mat
+    PMODGAP=0.0159; %FROM THE gapChange calculation
+    ACRIMGAP=0.7057; %From the gapChange calculation
+    %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
+    ACRIM=struct;
+    PMOD=struct;
+    AP=struct;
+    for ii=1:size(threeTest,2)
+        ACRIM.gap(ii)=threeTest(ii).ACRIM.muGap;
+        ACRIM.gapUnc(ii)=threeTest(ii).ACRIM.uncGap;
+        ACRIM.sigY1(ii,:)=threeTest(ii).ACRIM.sigYOut;
+        PMOD.gap(ii)=threeTest(ii).PMOD.muGap;
+        PMOD.gapUnc(ii)=threeTest(ii).PMOD.uncGap;
+        PMOD.sigY1(ii,:)=threeTest(ii).PMOD.sigYOut;
+        %See if gap is within expected uncertainty
+        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<(2.*ACRIM.gapUnc(ii));
+        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<(2.*PMOD.gapUnc(ii));
+        AP.gap(ii)=threeTest(ii).AP.muGap;
+        AP.gapUnc(ii)=threeTest(ii).AP.uncGap;
+        AP.sigY1(ii,:)=threeTest(ii).AP.sigYOut;
+        %See if gap is within expected uncertainty
+        AP.within(ii)=abs(AP.gap(ii)-ACRIMGAP)<(2.*AP.gapUnc(ii));
+        APMOD(:,:,ii)=threeTest(ii).ACRIM.Aout;
+        AACRIM(:,:,ii)=threeTest(ii).PMOD.Aout;
+    end
+    %Calculate the statistical power of BTSI in inferring ARIM Gap
+    PMOD_sig=quantile(PMOD.gap,.975);
+    sig_ct=sum(AP.gap>PMOD_sig);
+    stat_power=sig_ct./length(ACRIM.gap);
+end
+    
+    
     
     
 

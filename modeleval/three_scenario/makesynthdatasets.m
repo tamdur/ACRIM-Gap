@@ -1,4 +1,3 @@
-
 function [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(rngN,rhoInput,savePath)
 %Make synthetic datasets for ACRIM and PMOD scenarios
 %
