@@ -14,7 +14,7 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
 gapChange=0; %Calculate change in TSI between two periods
@@ -689,11 +689,12 @@ if threeScenario
     xlabel('Year')
     ylabel('Satellite observer error (W/m^{2})')
     set(gca,'FontSize',fSize)
-    text(datetime(1984,7,1),1.1,'(a)','FontSize',fSize+6)
+    text(datetime(1984,7,1),1.96,'(a)','FontSize',fSize+6)
+    ylim([-1 1.85])
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_rng3_23_02_20.mat
+    load threetestcluster_generic_23_02_20.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -735,13 +736,13 @@ if threeScenario
     xlabel('ACRIM-Gap change (W/m^{2})')
     ylabel('Number of simulations')
     set(gca,'FontSize',fSize)
-    xlim([-0.39 1])
+    xlim([-0.42 1])
     text(-.38,186,'(b)','FontSize',fSize+6)
     %Calculate the statistical power of BTSI in inferring ARIM Gap
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/twoscenario_23_02_16.png')
+    saveas(gcf,'plots/threescenario_23_02_20.png')
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
