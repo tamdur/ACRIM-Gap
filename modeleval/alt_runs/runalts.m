@@ -4,10 +4,10 @@
 clearvars
 lag1=0;
 lag3=0;
-synthGeneric=1;
+synthGeneric=0;
 synthAltH=0;
 synthNoRho=0;
-largeSynth=0;
+largeSynth=1;
 noERBE=0;
 altACRIM1=0;
 
@@ -58,13 +58,13 @@ if synthNoRho
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_15.mat');
 end
 if largeSynth
+    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=1500; %Total length of chain, including burn-in
+    opts.dispProgress=false;
+    opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
+    opts.NRLTSIprior=true;
     parfor ii=1:10
-        opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
-        opts.reps=1500; %Total length of chain, including burn-in
-        opts.dispProgress=false;
-        opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
-        opts.NRLTSIprior=true;
-        savePth=['threetestcluster_rng' num2str(ii) '_23_02_20.mat'];
+        savePth=['threetestcluster_rng' num2str(ii) '_23_02_21.mat'];
         [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,[],[]);
         runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth,opts);
     end
