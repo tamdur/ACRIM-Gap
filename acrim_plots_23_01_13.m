@@ -693,7 +693,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_rng3_23_02_18.mat
+    load threetestcluster_rng3_23_02_20.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -968,7 +968,7 @@ if PMODCorrections
     
 end
 if threeScenarioAnalysis
-    load threetestcluster_rng3_23_02_18.mat
+    load threetestcluster_rng3_23_02_20.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -993,6 +993,13 @@ if threeScenarioAnalysis
         APMOD(:,:,ii)=threeTest(ii).ACRIM.Aout;
         AACRIM(:,:,ii)=threeTest(ii).PMOD.Aout;
     end
+    %Get the residuals of TSI
+    for ii=1:size(threeTest,2)
+        xACRIM(:,ii)=threeTest(ii).ACRIM.xm;
+        xPMOD(:,ii)=threeTest(ii).PMOD.xm;
+    end
+    tsi = twotsiseries;
+    
     %Calculate the statistical power of BTSI in inferring ARIM Gap
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);

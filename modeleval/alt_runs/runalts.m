@@ -4,10 +4,10 @@
 clearvars
 lag1=0;
 lag3=0;
-synthGeneric=0;
+synthGeneric=1;
 synthAltH=0;
 synthNoRho=0;
-largeSynth=1;
+largeSynth=0;
 noERBE=0;
 altACRIM1=0;
 
@@ -40,8 +40,13 @@ if lag3
     runchain_23_01_13(valM,oM,colLabels,opts);
 end
 if synthGeneric
+    opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=1500; %Total length of chain, including burn-in
+    opts.dispProgress=false;
+    opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
+    opts.NRLTSIprior=true;
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,[],[]);
-    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_generic_23_02_15b.mat');
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_generic_23_02_20.mat',opts);
 end
 if synthAltH
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(2,[],'3scenario_rng2__23_02_15.mat');
