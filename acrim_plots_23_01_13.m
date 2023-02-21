@@ -14,10 +14,10 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
-threeScenario=1; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
+threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=0; %Calculate change in TSI between two periods
+gapChange=1; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
@@ -26,10 +26,10 @@ table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
-threeScenarioAnalysis=1; %Analyze output of three scenario test for debugging purposes
+threeScenarioAnalysis=0; %Analyze output of three scenario test for debugging purposes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-load ar2_23_02_17.mat; %Select the output chain to plot/analyze
+load ar2_23_02_21.mat; %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 
 if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
@@ -70,7 +70,7 @@ if tsiComparison
     offsets=offsets(lI);
     oM=oM(:,lI);
     sigY=sigY(lI,:);
-    t=t(:,lI);
+    t=tau(:,lI);
     valM=valM(:,lI); valMAll=valM;
     dateMAll=dateM;
     
@@ -208,7 +208,7 @@ if tsiComparison
     xlim([datejd(dates(1)) datejd(dates(2))])
     ylim([-0.9 1.25])
     text(datetime(1984,7,1),1.3,'(c)','FontSize',fSize)
-    saveas(gcf,'plots/tsicompare_23_02_01.png')
+    saveas(gcf,'plots/tsicompare_23_02_21.png')
 end
 if priorposterior
     datesave='23_02_01'; %Date for figure name

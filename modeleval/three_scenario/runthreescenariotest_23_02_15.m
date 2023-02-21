@@ -42,7 +42,7 @@ tN=length(ACRIM); %Number of synthetic datasets to be inferred
 for ii=1:tN
     %Run BTSI on ACRIM scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(ACRIM(ii).valM,oM,colLabels,opts);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(ACRIM(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).ACRIM.Aout=Aout;
     threeTest(ii).ACRIM.sigYOut=sigYOut;

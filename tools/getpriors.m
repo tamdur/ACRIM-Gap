@@ -1,4 +1,4 @@
-function[H0, Hsig, T0, th0] = getpriors(NN,oindex,tindex,sindex,valM,oM,...
+function[H0, Hsig, T0, th0,X0,Xsig] = getpriors(NN,oindex,tindex,sindex,valM,oM,...
     satindex,colLabels,opts,priorpath)
 thresh=24; %Threshold for using overlapping observers be it years or months
 savePath='mat_files/obspriors_23_01_13.mat'; %Save path if priors are to be saved
@@ -11,6 +11,7 @@ if nargin<10
     satInd=find(satindex);
     
     %Use NRLTSI relationship between sunspots, mg-II and TSI to set priors
+    %and also the innovation uncertainty
     if isfield(opts,'NRLTSIprior') && opts.NRLTSIprior==true
         load oTSI_23_02_01.mat
         valT=valM;oMT=oM; %Temporarily save input values 
@@ -35,6 +36,28 @@ if nargin<10
             obsPrior(proxInd(ii)).bsig = b(2).*.25; %One sigma uncertainty in offset
             obsPrior(proxInd(ii)).msig = b(2).*.25; %One sigma uncertainty in scaling
         end
+        
+        %Get residual errors of autoregressive AR(2) model
+        YCycleAll=x-movmean(x,12.*11,'omitnan');
+        YCycleAll=YCycleAll-min(YCycleAll); %Set Y-intercept to minimum TSI value
+        Y=x;
+        X=[];
+        for iL=1:opts.lags %Create columns for lagged estimates of x
+            X=[X lag0(x,iL)];
+        end
+        X=[ones(size(Y,1),1) X];%To ensure a stable linear regression, estimate mean of TSI
+        Y=Y(2:end,:);
+        X=X(2:end,:);
+        
+        M=inv(X'*X)*(X'*Y);
+        errorsx=Y-X*M;
+        
+        %Estimate regression parameters of noise as a fn. of solar
+        %cycle magnitude
+        [X0,bint]=regress(abs(errorsx),[ones(length(errorsx),1) YCycleAll(2:end)]);
+        Xsig=(bint(:,2)-bint(:,1))./4; %Convert from 95\% CI to one sigma
+        
+        
         valM=valT;oM=oMT; %Restore original values
         
     %Use raw observations to set priors, RISK OF REGRESSION DILUTION

@@ -12,12 +12,13 @@ if mainExperiment
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.lags=2;
-    opts.saveFile='ar2_23_02_17_doubleHsig.mat';
+    opts.NRLTSIprior=true;
+    opts.saveFile='ar2_23_02_21b.mat';
     opts.randomizeChain=false;
     opts.excludeFliers=false;
     opts.logContributions=true;
     opts.normalize=false;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
                       %1 to maintain default
-    runchain_23_01_13([],[],[],opts);
+    runchain_23_02_21([],[],[],opts);
 end

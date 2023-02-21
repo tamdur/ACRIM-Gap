@@ -177,7 +177,7 @@ errorsx=Y-X*alpha1;
 % Sigma=qSigma+mSigma*Y;
 % Sigma(Sigma<qSigma)=qSigma;
 % Sigma=[Sigma(1);Sigma];%lengthen to full observation interval
-[Sigma,~,~]=epsilonmagdependent(Y,x0,X,alpha);
+[Sigma,mSigma,bSigma]=epsilonmagdependent(Y,x0,X,alpha);
 
 %Create matrix of factor loadings
 H=zeros(NN,NN+L+1);
@@ -276,6 +276,8 @@ if m>opts.burn
     sigY(:,mm)=rmat; %observer noise estimate
     sigX(:,mm) = Sigma; %TSI noise estimate
     theta(:,mm)=th; %Theta parameter estimate
+    outDat.m(mm)=mSigma;
+    outDat.b(mm)=bSigma;
     if opts.logContributions
         outDat.contributionChain(mm,:,:)=contributionChain; %Innovation contributions
     end
@@ -302,18 +304,23 @@ end
 end
 
 function [rmat,mSigma,bSigma]=epsilonmagdependent(Y,x0,X,alpha)
-YCycle=Y-movmean(Y,12.*11); %Solar cycle anomaly
 YCycleAll=x0-movmean(x0,12.*11,'omitnan');
+YCycleAll=YCycleAll-min(YCycleAll); %Set Y-intercept to minimum TSI value
+YCycle=YCycleAll(2:end); %Solar cycle anomaly
+
 %sample VAR covariance for time-dependent X uncertainty
 errorsx=Y-X*alpha;
 bSigma=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
 precX=1./bSigma;
-Mx=inv(precX.*YCycle'*YCycle)*(precX*YCycle'*(errorsx.^2)); %Estimate noise as fn of TSI magnitude
+Mx=inv(precX.*YCycle'*YCycle)*(precX*YCycle'*abs(errorsx)); %Estimate noise as fn of TSI magnitude
 Vx=bSigma.*inv(YCycle'*YCycle);
 mSigma=Mx+(randn*chol(Vx))'; %Estimate of magnitude-dependent innovation noise
 Sigma=bSigma+mSigma*YCycleAll;
 Sigma(Sigma<bSigma)=bSigma;
-rmat=Sigma;%[Sigma(1);Sigma];%lengthen to full observation interval
+rmat=Sigma.^2;%[Sigma(1);Sigma];%lengthen to full observation interval
+if bSigma <0
+    aaaaa=1;
+end
 end
 
 
