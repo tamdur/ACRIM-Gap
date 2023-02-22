@@ -12,7 +12,7 @@ clearvars
 tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
-obsContributions=1; %Plot the relative contribution of each observer to BTSI over time
+obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,7 +26,7 @@ table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
-threeScenarioAnalysis=0; %Analyze output of three scenario test for debugging purposes
+threeScenarioAnalysis=1; %Analyze output of three scenario test for debugging purposes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
 load ar2_ACRIM2nooffset_23_02_21.mat %Select the output chain to plot/analyze
@@ -694,7 +694,7 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_generic_23_02_20.mat
+    load threetestcluster_rng10_23_02_21.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -969,7 +969,7 @@ if PMODCorrections
     
 end
 if threeScenarioAnalysis
-    load threetestcluster_rng3_23_02_20.mat
+    load threetestcluster_rng1_23_02_21.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -998,6 +998,9 @@ if threeScenarioAnalysis
     for ii=1:size(threeTest,2)
         xACRIM(:,ii)=threeTest(ii).ACRIM.xm;
         xPMOD(:,ii)=threeTest(ii).PMOD.xm;
+        xAP(:,ii)=threeTest(ii).AP.xm;
+        AoutACRIM(:,:,ii)=threeTest(ii).ACRIM.Aout;
+        AoutPMOD(:,:,ii)=threeTest(ii).PMOD.Aout;
     end
     tsi = twotsiseries;
     
