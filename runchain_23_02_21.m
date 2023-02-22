@@ -64,7 +64,7 @@ if opts.excludeFliers %Code to remove outliers using a past run of BTSI
     oM(excludeMask) = false;
 end
 %Specify priors for H coefficients
-oindex=[1 1 1 1 1 1 0]; %oindex=1 for observers with varying offset, 0 for fixed
+oindex=[1 0 1 1 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
 tindex=[1 1 0 1 1 0 1]; %tindex=1 for observers with time dependent drift, 0 otherwise
 sindex=[0 0 1 0 0 1 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
 satindex=tindex; %satindex=1 for observers that are satellites, 0 otherwise
@@ -111,6 +111,19 @@ rmat=1E9.*ones(NN,1); %arbitrary starting value for the variance of process x
 Sigma=eye(N);  %arbitrary starting value for the variance of transition model errors
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(T,size(data,2));
+
+%Prepare arrays to be saved
+NS=opts.reps-opts.burn;
+outDat.contributionChain=zeros(NS,T,NN);
+outDat.m=zeros(NS,1);
+outDat.b=zeros(NS,1);
+xAll=zeros(T,NS);
+A=zeros(NN,3,NS);
+a=zeros(L,NS);
+sigY=zeros(NN,NS);
+sigX=zeros(T,NS);
+theta=zeros(NN,NS);
+
 mm=1;%index for saved chain post-burnin
 tic
 for m=1:opts.reps %Gibbs sampling
@@ -304,11 +317,11 @@ YCycle=YCycleAll(2:end); %Solar cycle anomaly
 pred=[ones(length(YCycle),1) YCycle];
 %sample VAR covariance for time-dependent X uncertainty
 errorsx=Y-X*alpha;
-%Predict errors using NRLTSI prior
 sig=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
 precX=1./sig;
-sig0=diag(Xsig.^2);
-Mx=inv(inv(sig0)+precX.*pred'*pred)*(inv(sig0)*X0+precX*pred'*abs(errorsx)); %Estimate noise as fn of TSI magnitude
+sig0=diag(Xsig.^2); %Predict errors using NRLTSI prior
+%Estimate noise as fn of TSI magnitude
+Mx=inv(inv(sig0)+precX.*pred'*pred)*(inv(sig0)*X0+precX*pred'*abs(errorsx)); 
 Vx=inv(inv(sig0)+precX.*pred'*pred);
 p=-1;
 while p<=0

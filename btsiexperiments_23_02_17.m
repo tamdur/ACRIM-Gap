@@ -13,7 +13,7 @@ if mainExperiment
     opts.dispProgress=true;
     opts.lags=2;
     opts.NRLTSIprior=true;
-    opts.saveFile='ar2_23_02_21b.mat';
+    opts.saveFile='ar2_ACRIM2nooffset_23_02_21.mat';
     opts.randomizeChain=false;
     opts.excludeFliers=false;
     opts.logContributions=true;
