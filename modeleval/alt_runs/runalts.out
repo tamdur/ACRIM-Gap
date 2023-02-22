@@ -10,14 +10,14 @@ To get started, type doc.
 For product information, visit www.mathworks.com.
  
 Starting parallel pool (parpool) using the 'local' profile ...
-connected to 32 workers.
+connected to 10 workers.
 
 ans = 
 
  Pool with properties: 
 
             Connected: true
-           NumWorkers: 32
+           NumWorkers: 10
               Cluster: local
         AttachedFiles: {}
     AutoAddClientPath: true
