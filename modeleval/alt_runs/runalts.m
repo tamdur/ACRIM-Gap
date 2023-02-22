@@ -62,7 +62,7 @@ if synthNoRho
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
     opts.NRLTSIprior=true;
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,0,[]);
-    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_21.mat');
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_02_21.mat',opts);
 end
 if largeSynth
     opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
