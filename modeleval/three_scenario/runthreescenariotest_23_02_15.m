@@ -55,7 +55,7 @@ for ii=1:tN
     
     %Run BTSI on PMOD scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(PMOD(ii).valM,oM,colLabels,opts);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(PMOD(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).PMOD.Aout=Aout;
     threeTest(ii).PMOD.sigYOut=sigYOut;
@@ -69,7 +69,7 @@ for ii=1:tN
     
     %Run BTSI on A/P scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_01_13(AP(ii).valM,oM,colLabels,opts);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(AP(ii).valM,oM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).AP.Aout=Aout;
     threeTest(ii).AP.sigYOut=sigYOut;

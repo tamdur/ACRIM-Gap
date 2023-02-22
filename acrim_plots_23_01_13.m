@@ -12,12 +12,12 @@ clearvars
 tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior=0; %Plot the priors and posteriors for each observer
 priorposterior2=0; %Plot the priors and posteriors for each observer
-obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
+obsContributions=1; %Plot the relative contribution of each observer to BTSI over time
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=1; %Calculate change in TSI between two periods
+gapChange=0; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
@@ -29,7 +29,7 @@ PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 threeScenarioAnalysis=0; %Analyze output of three scenario test for debugging purposes
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-load ar2_23_02_21.mat; %Select the output chain to plot/analyze
+load ar2_ACRIM2nooffset_23_02_21.mat %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 
 if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
@@ -381,7 +381,7 @@ if priorposterior2
     obsUsed(6)=true; %Turn on SILSO spots
     satI=find(satindex);
     %Pull output from simulation
-    reps = outDat.reps;
+    %reps = outDat.reps;
     sC = squeeze(A(:,2,:));
     bC = squeeze(A(:,1,:));
     mC = squeeze(A(:,3,:));
@@ -541,7 +541,7 @@ if obsContributions
     offsets=offsets(lI);
     oM=oM(:,lI);
     sigY=sigY(lI,:);
-    t=t(:,lI);
+    t=tau(:,lI);
     valM=valM(:,lI);
     conChain=conChain(:,:,lI);%Reorient to agree with formatting of this plotting function
     cn=squeeze(mean(abs(conChain),1));

@@ -12,7 +12,7 @@ noERBE=0;
 altACRIM1=0;
 
 %Make sure everything is visible
-parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+%parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/modeleval')
@@ -63,7 +63,7 @@ if largeSynth
     opts.dispProgress=false;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
     opts.NRLTSIprior=true;
-    parfor ii=1:10
+    for ii=1:10
         savePth=['threetestcluster_rng' num2str(ii) '_23_02_21.mat'];
         [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(ii,[],[]);
         runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],savePth,opts);
