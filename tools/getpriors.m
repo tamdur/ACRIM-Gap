@@ -33,8 +33,11 @@ if nargin<10
             obsPrior(proxInd(ii)).std = nanstd(res);
             obsPrior(proxInd(ii)).b = b(1);
             obsPrior(proxInd(ii)).m = b(2);
-            obsPrior(proxInd(ii)).bsig = b(2).*.25; %One sigma uncertainty in offset
-            obsPrior(proxInd(ii)).msig = b(2).*.25; %One sigma uncertainty in scaling
+            %One sigma uncertainty in offset (note this is large due to
+            %lack of centering of proxy records)
+            obsPrior(proxInd(ii)).bsig = b(2).*.5; 
+            %One sigma uncertainty in scaling
+            obsPrior(proxInd(ii)).msig = b(2).*.25; 
         end
         
         %Get residual errors of autoregressive AR(2) model
@@ -139,18 +142,19 @@ mSig = 0.25; %prior variance for c (satellite drift)
 
 H0=zeros(NN,3);H0(:,2) = 1; %prior for scaling H of form [a_i b_i c_i]
 Hsig=1E-12.*ones(NN,3);
+Hsig=Hsig.*H0(:,2);
 Hsig(:,1)=Hsig(:,1)+(offSig.*oindex');%prior sigma for offset
 Hsig(:,2)=Hsig(:,2)+(1000.*sindex');%prior sigma for scaling
 Hsig(:,3)=Hsig(:,3)+(mSig.*tindex'); %prior sigma for drift
-
 %Make changes for proxies if linearity assumed (first row sunspots, second row mg)
 proxI=find(~satindex);%indices for proxies
 for iP=1:length(proxI)
     Hsig(proxI(iP),1)=obsPrior(proxI(iP)).bsig.^2; %Var uncertainty for proxy offset
     Hsig(proxI(iP),2)=obsPrior(proxI(iP)).msig.^2; %var uncertainty for proxy scaling
-    Hsig(proxI(iP),3)=1E-12.*ones(length(proxI(iP)),1); %Fix slope
     H0(proxI(iP),2)=obsPrior(proxI(iP)).m; %Proxy Scaling uncertainty prior
+    Hsig(proxI(iP),3)=1E-12.*H0(proxI(iP),2).*ones(length(proxI(iP)),1); %Fix slope
 end
+
 if isfield(opts,'HsigScale')
     Hsig=Hsig.*opts.HsigScale;
 end

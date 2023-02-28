@@ -16,7 +16,7 @@ sat(1).TSI = NIMBUS.TSI;
 % ACRIM1/SMM
 %--------------------------------------------------
 smmimport
-sat(2).ID = 'ACRIM1/SMM';
+sat(2).ID = 'SMM/ACRIM1';
 sat(2).JD = juliandate(datetime(SMM.year,SMM.month,SMM.day));
 sat(2).TSI = SMM.TSI;
 sat(2).version = '1';
@@ -24,14 +24,14 @@ sat(2).version = '1';
 % ERBE/ERBS
 %--------------------------------------------------
 erbsimport
-sat(3).ID = 'ERBE/ERBS';
+sat(3).ID = 'ERBS/ERBE';
 sat(3).JD = ERBS.JD;
 sat(3).TSI = ERBS.TSI;
 %--------------------------------------------------
 % ACRIM2
 %--------------------------------------------------
 acrim2import
-sat(4).ID = 'ACRIM2/UARS';
+sat(4).ID = 'UARS/ACRIM2';
 dates = ACRIM2.YEAR;
 [years, days] = ConvertSerialYearToDate(dates);
 days(days<1)=1; %Eliminate errors from rounding down to 0
@@ -44,7 +44,7 @@ sat(4).TSI = ACRIM2.TSI;
 % VIRGO/SOHO
 %--------------------------------------------------
 virgoimport2
-sat(5).ID = 'VIRGO/SOHO';
+sat(5).ID = 'SOHO/VIRGO';
 sat(5).JD = VIRGO.JulianDate;
 sat(5).TSI = VIRGO.VIRGOAB_correc; %Note there exist other TSI products from this sat
 sat(5).version = 'V8_20220105';
@@ -52,7 +52,7 @@ sat(5).version = 'V8_20220105';
 % ACRIM3/ACRIMSAT
 %--------------------------------------------------
 acrim3import
-sat(6).ID = 'ACRIM3';
+sat(6).ID = 'ACRIMSAT/ACRIM3';
 sat(6).JD = juliandate(datetime(ACRIM3.YYMMDD,'InputFormat', 'yyMMdd'));
 sat(6).TSI = ACRIM3.TSI;
 sat(6).version= 'v1L2';
@@ -71,7 +71,7 @@ sat(7).version = 'v19L3';
 % PREMOS
 %--------------------------------------------------
 load('PREMOSdaily.mat')
-sat(8).ID = 'PREMOS/PICARD';
+sat(8).ID = 'PICARD/PREMOS';
 sat(8).JD = PREMOSDAY.JD';
 sat(8).TSI = PREMOSDAY.TSI'; %No NaNs recorded
 sat(8).version = 'v2';
@@ -80,7 +80,7 @@ sat(8).version = 'v2';
 % TCTE
 %--------------------------------------------------
 tcteimport
-sat(9).ID = 'TCTE';
+sat(9).ID = 'TCTE/TIM';
 sat(9).JD = juliandate(datetime(int32(TCTE.YYYYMMDD), 'ConvertFrom', 'YYYYMMDD'));
 sat(9).TSI = TCTE.TSI;
 nanInd = find(sat(9).TSI < 1000);
@@ -109,7 +109,7 @@ sat(11).version = 'ftp.pmodwrc.ch/pub/data/irradiance/acrim/AdditionalFiles acce
 % ACRIM1 PMOD CORRECTED
 %--------------------------------------------------
 acrim1correctedimport
-sat(12).ID = 'ACRIM1/SMM PMOD CORRECTED';
+sat(12).ID = 'SMM/ACRIM1 PMOD CORRECTED';
 sat(12).JD = ACRIM1CORR.JD;
 sat(12).TSI = ACRIM1CORR.TSI;
 sat(12).TSI(sat(12).TSI < 0)=NaN;
@@ -118,7 +118,7 @@ sat(12).version = 'ftp.pmodwrc.ch/pub/data/irradiance/acrim/AdditionalFiles acce
 % ACRIM2 PMOD CORRECTED
 %--------------------------------------------------
 acrim2correctedimport
-sat(13).ID = 'ACRIM2/UARS PMOD CORRECTED';
+sat(13).ID = 'UARS/ACRIM2 PMOD CORRECTED';
 sat(13).JD = ACRIM2CORR.JD;
 sat(13).TSI = ACRIM2CORR.TSI;
 sat(13).TSI(sat(13).TSI < 0)=NaN;
@@ -127,7 +127,7 @@ sat(13).version = 'ftp.pmodwrc.ch/pub/data/irradiance/acrim/AdditionalFiles acce
 % ERBS PMOD CORRECTED
 %--------------------------------------------------
 erbscorrectedimport
-sat(14).ID = 'ERBE/ERBS PMOD CORRECTED';
+sat(14).ID = 'ERBS/ERBE PMOD CORRECTED';
 sat(14).JD = ERBSCORR.JD;
 sat(14).TSI = ERBSCORR.TSI;
 sat(14).TSI(sat(14).TSI < 0)=NaN;

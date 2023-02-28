@@ -9,8 +9,8 @@ dateR=dateS.acrimplusfive; %Load range of dates for which to incorporate observa
 removeOffsets=1; %1 to remove offsets from observations, 0 to keep native units
 satOnly=0; %1 to only use satellites, 0 to use proxies+satellites
 PMOD=0;%1 to use Frohlich 2006 PMOD corrections, 0 to use original
-carrington=1; %1 to use carrington rotation period, 0 to use monthly average
-saveString= 'mat_files/obscarrington_23_02_02.mat'; %Name of saved mat file
+carrington=0; %1 to use carrington rotation period, 0 to use monthly average
+saveString= 'mat_files/obs_23_02_25.mat'; %Name of saved mat file
 
 if PMOD
     paths=dir('observations_pmod/*.txt');
@@ -82,6 +82,14 @@ if satOnly
         end
     end
 end
+
+%Re-arrange output to be consistent with past output
+lI=[5;7;1;2;3;4;6];
+oM=oM(:,lI);
+colLabels=colLabels(lI);
+valM=valM(:,lI);
+offsets=offsets(lI);
+
 
 if ~isempty(saveString)
 save(saveString,'oM','dateM','colLabels','valM','offsets');

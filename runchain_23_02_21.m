@@ -17,14 +17,17 @@ outDat.script=mfilename; %Save name of script
 if ~exist('valM','var') || isempty(valM) %Load default observation array, otherwise load provided one
 obsmatrix='obs_23_02_01'; %Load data array, with colLabels corresponding to observer source for each column
 load(obsmatrix); %From makeobsmatrix.m
+% outDat.mgScale=nanstd(valM(:,1));
+% valM(:,1)=valM(:,1)./nanstd(valM(:,1));
 %Seven columns of valM correspond to the following observers:
-%     "ACRIM1/SMM"
-%     "ACRIM2/UARS"
-%     "BremenMgII"
-%     "ERBE/ERBS"
-%     "NIMBUS-7/HF"
-%     "SILSO"
-%     "VIRGO/SOHO"
+% "BremenMgII"
+% "ERBS/ERBE"
+% "NIMBUS-7/HF"
+% "SILSO"
+% "SMM/ACRIM1"
+% "SOHO/VIRGO"
+% "UARS/ACRIM2"
+
 else
     obsmatrix='synthetic';
 end
@@ -88,13 +91,15 @@ for ii=1:size(data,2)
     tau(:,ii)=tau(:,ii)-TM;
 end
 
-%Load priors for observation model
-[H0, Hsig, T0, th0,Xprior,Xsig] = getpriors(NN,oindex,tindex,sindex,valM,oM,...
-    satindex,colLabels,opts);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 1: establish starting values and priors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Load priors for observation model
+[H0, Hsig, T0, th0,Xprior,Xsig] = getpriors(NN,oindex,tindex,sindex,valM,oM,...
+    satindex,colLabels,opts);
+outDat.Xprior=Xprior;
+outDat.Xsig=Xsig;
 
 %get an intial guess for the process
 x0=zeros(T,1);
@@ -319,10 +324,16 @@ pred=[ones(length(YCycle),1) YCycle];
 errorsx=Y-X*alpha;
 sig=IG(0,0,errorsx); %Estimate of baseline TSI innovation noise
 precX=1./sig;
-sig0=diag(Xsig.^2); %Predict errors using NRLTSI prior
-%Estimate noise as fn of TSI magnitude
-Mx=inv(inv(sig0)+precX.*pred'*pred)*(inv(sig0)*X0+precX*pred'*abs(errorsx)); 
-Vx=inv(inv(sig0)+precX.*pred'*pred);
+if exist('X0','var') && exist('Xsig','var')
+    sig0=diag(Xsig.^2); %Predict errors using NRLTSI prior
+    %Estimate noise as fn of TSI magnitude
+    Mx=inv(inv(sig0)+precX.*pred'*pred)*(inv(sig0)*X0+precX*pred'*abs(errorsx));
+    Vx=inv(inv(sig0)+precX.*pred'*pred);
+else
+    Mx=inv(precX.*pred'*pred)*(precX*pred'*abs(errorsx));
+    Vx=inv(precX.*pred'*pred);
+end
+    
 p=-1;
 while p<=0
 b=Mx+(randn(1,2)*chol(Vx))'; %Estimate of magnitude-dependent innovation noise

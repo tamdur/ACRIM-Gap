@@ -6,10 +6,10 @@ lag1=0;
 lag3=0;
 synthGeneric=0;
 synthAltH=0;
-synthNoRho=1;
+synthNoRho=0;
 largeSynth=0;
 noERBE=0;
-altACRIM1=0;
+altACRIM1=1;
 
 %Make sure everything is visible
 %parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
@@ -84,7 +84,8 @@ if noERBE
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.logContributions=false;
-    opts.saveFile='ar2_noERBE_23_02_15.mat';
+    opts.NRLTSIprior=true;
+    opts.saveFile='ar2_noERBE_23_02_21.mat';
     runchain_23_02_21(valM,oM,colLabels,opts);
 end
 if altACRIM1
@@ -94,6 +95,7 @@ if altACRIM1
     opts.reps=10500; %Total length of chain, including burn-in
     opts.dispProgress=true;
     opts.logContributions=false;
-    opts.saveFile='ar2_shortACRIM1_23_02_15.mat';
+    opts.NRLTSIprior=true;
+    opts.saveFile='ar2_shortACRIM1_23_02_21.mat';
     runchain_23_02_21(valM,oM,colLabels,opts);
 end

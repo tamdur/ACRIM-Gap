@@ -27,7 +27,7 @@ instruments(satL+1).JD=compositeObs.day(vInd)+0.5;
 instruments(satL+1).TSI=compositeObs.spotsInt(vInd);
 
 %Mg-II
-instruments(satL+2).ID ="BremenMgII";
+instruments(satL+2).ID ="Bremen Mg-II";
 instruments(satL+2).version="v5";
 vInd=~isnan(compositeObs.mg);
 instruments(satL+2).JD=compositeObs.day(vInd)+0.5;

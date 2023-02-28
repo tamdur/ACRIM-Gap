@@ -9,4 +9,5 @@ juliandate(datetime(2019,12,01)) juliandate(datetime(2030,11,31))];
 
 dateS.acrim = [juliandate(datetime(1989,06,02)) juliandate(datetime(1991,10,03))];
 dateS.acrimplusfive = [juliandate(datetime(1989-5,06,01)) juliandate(datetime(1991+5,10,31))];
+dateS.all= [juliandate(datetime(1978,11,1)) juliandate(datetime(2021,12,31))];
 end
