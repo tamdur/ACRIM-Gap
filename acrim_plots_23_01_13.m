@@ -9,7 +9,7 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =1; %plot Figure 1 of manuscript
+tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
@@ -21,7 +21,7 @@ trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
-table2=0; %Calculate values for Table 2, the posterior model parameters
+table2=1; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
@@ -33,7 +33,7 @@ twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gap
 priorposterior=0; %Plot the priors and posteriors for each observer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-BTSIPath= 'ar2_23_02_22.mat';
+BTSIPath= 'ar2_23_03_02.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
 obsmatrix=outDat.obsmatrix;
 

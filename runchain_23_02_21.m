@@ -53,7 +53,7 @@ if ~isfield(opts,'lags')
     opts.lags=2; %Set process to AR(2)
 end
 opts.normalize=false; %Set to true to normalize data within. For getpriors call
-
+opts.cmpStYr=1978;
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
@@ -74,6 +74,7 @@ satindex=tindex; %satindex=1 for observers that are satellites, 0 otherwise
 
 valMAll=valM;
 tsi.data = valM;
+tsi.dateM=dateM;
 iObs = nansum(oM,1);
 tsi.T=size(tsi.data,1);
 tsi.L=opts.lags;  %number of lags in the VAR
@@ -113,7 +114,7 @@ tsi.ns=size(tsi.X0,2);
 ns=size(tsi.X0,2);
 tsi.V00=eye(tsi.ns);  %v[t-1|t-1]
 rmat=1E9.*ones(tsi.NN,1); %arbitrary starting value for the variance of process x
-Sigma=eye(tsi.N);  %arbitrary starting value for the variance of transition model errors
+tsi.Sigma=eye(tsi.N);  %arbitrary starting value for the variance of transition model errors
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(tsi.T,tsi.NN);
 
@@ -164,38 +165,14 @@ tsi.rmat=rmat;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 4: sample estimates of autoregressive parameters alpha
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Y=tsi.x0;
-X=[];
-for iL=1:tsi.L %Create columns for lagged estimates of x
-    X=[X lag0(Y,iL)];
-end
-X=[X ones(size(Y,1),1)];%To ensure a stable linear regression, estimate mean of TSI
-Y=Y(2:end,:);
-X=X(2:end,:);
-tsi.X=X;
-
-M=inv(X'*X)*(X'*Y);M=M(:);  %conditional mean (right now just the obs mean) 
-V=mean(Sigma).*inv(X'*X); %conditional variance
-chck=-1;                 %make sure VAR is stationary
-while chck<0
-alpha=M+(randn(1,tsi.N*(tsi.N*tsi.L+1))*chol(V))';  %draw for VAR coefficients
-S=stability(alpha,tsi.N,tsi.L);
-if S==0
-    chck=10;
-end
-end
-alpha1=reshape(alpha,tsi.N*tsi.L+1,tsi.N);
-tsi.alpha=alpha1;
-
-errorsx=Y-X*alpha1;
+[tsi.alpha,tsi.X,tsi.Y]=arsample(tsi,opts.cmpStYr);
 
 %sample VAR covariance for time-dependent X uncertainty
-[Sigma,mSigma,bSigma]=epsilonmagdependent(tsi.x0,tsi.X,tsi.alpha,tsi.Xprior,tsi.Xsig);
+[tsi.Sigma,mSigma,bSigma]=epsilonmagdependent(tsi.x0,tsi.X,tsi.alpha,tsi.Xprior,tsi.Xsig);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 5: Run Kalman filter to estimate x
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-tsi.Sigma=Sigma;
 tsi.hload=hload;
 opts.nonLin=false;
 opts.tDependence=true;
@@ -248,3 +225,5 @@ end
 
 
 end
+
+
