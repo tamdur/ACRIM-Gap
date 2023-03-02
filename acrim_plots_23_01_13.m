@@ -33,7 +33,8 @@ twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gap
 priorposterior=0; %Plot the priors and posteriors for each observer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-load ar2_23_02_22.mat %Select the output chain to plot/analyze
+BTSIPath= 'ar2_23_02_22.mat';
+load(BTSIPath); %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 
 if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
@@ -914,7 +915,7 @@ if allCalcs
     cMean{14}=prctile(A(5,3,:),50);
     c25{14}=prctile(A(5,3,:),2.5);
     c975{14}=prctile(A(5,3,:),97.5);
-    load ar2_23_02_22.mat
+    load(BTSIPath);
     cMean{15}=prctile(A(4,3,:),50);
     c25{15}=prctile(A(4,3,:),2.5);
     c975{15}=prctile(A(4,3,:),97.5);
@@ -924,7 +925,7 @@ if allCalcs
     load obsPMOD_23_02_01.mat
     valP=valM;
     %-Load obsmatrix for observations
-    load obs_23_02_01.mat
+    load(obsmatrix);
     valO=valM;
     %Calculate the drift by doing linear fit
     valD=valO-valP;
@@ -944,7 +945,7 @@ if allCalcs
     %Find autocorrelations of BTSI, others
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     smoothWindow=1;
-    load ar2_23_02_22.mat
+    load(BTSIPath);
     ind=1;
     for ii=1:100:size(xAll,2)
         rhoBTSI(ind)=rhoAR1(xAll(2:end,ii),xAll(1:end-1,ii));
@@ -1026,7 +1027,7 @@ if allCalcs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Get state-space prior and posterior parameters
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    load ar2_23_02_22.mat
+    load(BTSIPath);
     cMean{31}=[];c25{31}=[];c975{31}=[]; %alpha 1 prior
     cMean{32}=prctile(a(1,:),50);c25{32}=prctile(a(1,:),2.5);c975{32}=prctile(a(1,:),97.5); %alpha 1 posterior
     cMean{33}=[];c25{33}=[];c975{33}=[]; %alpha 2 prior
