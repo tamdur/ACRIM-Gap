@@ -9,7 +9,7 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =0; %plot Figure 1 of manuscript
+tsiComparison =1; %plot Figure 1 of manuscript
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
@@ -21,7 +21,7 @@ trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
-table2=1; %Calculate values for Table 2, the posterior model parameters
+table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
@@ -35,7 +35,7 @@ priorposterior=0; %Plot the priors and posteriors for each observer
 fSize = 20;
 BTSIPath= 'ar2_23_02_22.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
-obsmatrix='obs_23_02_01.mat';
+obsmatrix=outDat.obsmatrix;
 
 if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
     tau=t;
@@ -71,7 +71,7 @@ c(10,:) = c(1,:);
 
 if tsiComparison 
     %Order as proxies followed by satellites in chronological order
-    lI=[4;1;3;5;2;7;6];
+    lI=[6;3;5;1;4;2;7];
     A=A(lI,:,:);
     colLabels=colLabels(lI);
     offsets=offsets(lI);
@@ -1032,7 +1032,6 @@ if allCalcs
     cMean{32}=prctile(a(1,:),50);c25{32}=prctile(a(1,:),2.5);c975{32}=prctile(a(1,:),97.5); %alpha 1 posterior
     cMean{33}=[];c25{33}=[];c975{33}=[]; %alpha 2 prior
     cMean{34}=prctile(a(2,:),50);c25{34}=prctile(a(2,:),2.5);c975{34}=prctile(a(2,:),97.5); %alpha 2 posterior
-    
     cMean{35}=outDat.Xprior(1);c25{35}=outDat.Xprior(1)-2.*outDat.Xsig(1);c975{35}=outDat.Xprior(1)+2.*outDat.Xsig(1); %q prior
     cMean{36}=prctile(outDat.b,50);c25{36}=prctile(outDat.b,2.5);c975{36}=prctile(outDat.b,97.5); %q posterior
     cMean{37}=outDat.Xprior(2);c25{37}=outDat.Xprior(2)-2.*outDat.Xsig(2);c975{37}=outDat.Xprior(2)+2.*outDat.Xsig(2); %m prior
