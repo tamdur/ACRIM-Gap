@@ -73,29 +73,3 @@ alpha = reshape(alphaT, N * L + 1, N);
 % The regressor matrix X is returned for potential use in subsequent
 % calculations
 end
-
-
-% Y=tsi.x0;
-% X=[];
-% for iL=1:tsi.L %Create columns for lagged estimates of x
-%     X=[X lag0(Y,iL)];
-% end
-% X=[X ones(size(Y,1),1)];%To ensure a stable linear regression, estimate mean of TSI
-% Y=Y(2:end,:);
-% X=X(2:end,:);
-% tsi.X=X;
-% 
-% M=inv(X'*X)*(X'*Y);M=M(:);  %conditional mean (right now just the obs mean) 
-% V=mean(Sigma).*inv(X'*X); %conditional variance
-% chck=-1;                 %make sure VAR is stationary
-% while chck<0
-% alpha=M+(randn(1,tsi.N*(tsi.N*tsi.L+1))*chol(V))';  %draw for VAR coefficients
-% S=stability(alpha,tsi.N,tsi.L);
-% if S==0
-%     chck=10;
-% end
-% end
-% alpha1=reshape(alpha,tsi.N*tsi.L+1,tsi.N);
-% tsi.alpha=alpha1;
-% 
-% errorsx=Y-X*alpha1;

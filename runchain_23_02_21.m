@@ -75,13 +75,14 @@ satindex=tindex; %satindex=1 for observers that are satellites, 0 otherwise
 valMAll=valM;
 tsi.data = valM;
 tsi.dateM=dateM;
+tsi.oM=oM;
 iObs = nansum(oM,1);
 tsi.T=size(tsi.data,1);
 tsi.L=opts.lags;  %number of lags in the VAR
 tsi.N=1; %Number of factors/variables in the transition equation
 tsi.NN=size(tsi.data,2);% Number of observers
 
-cx = ones(tsi.T,1); %ones vector in first row of z for offset
+tsi.cx = ones(tsi.T,1); %ones vector in first row of z for offset
 tau =repmat(linspace(0,tsi.T./120,tsi.T)',[1 tsi.NN]); %Make time rows for t
 for ii=1:tsi.NN
     TM=mean(tau(oM(:,ii),ii));
@@ -91,13 +92,14 @@ for ii=1:tsi.NN
     tau(:,ii)=tau(:,ii)-TM;
 end
 tsi.tau=tau;
+tsi.tDependence=true; %True to use drift predictor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 1: establish starting values and priors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Load priors for observation model
-[H0, Hsig, T0, th0,tsi.Xprior,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,sindex,valM,oM,...
+[tsi.H0, tsi.Hsig, T0, th0,tsi.Xprior,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,sindex,valM,oM,...
     satindex,colLabels,opts);
 
 %get an intial guess for the process
@@ -111,9 +113,8 @@ end
 tsi.x0=x0;
 tsi.X0=[x0(1) zeros(1,tsi.L-1)];%state vector X[t-1|t-1] of x and nth order lagged x
 tsi.ns=size(tsi.X0,2);
-ns=size(tsi.X0,2);
 tsi.V00=eye(tsi.ns);  %v[t-1|t-1]
-rmat=1E9.*ones(tsi.NN,1); %arbitrary starting value for the variance of process x
+tsi.rmat=1E9.*ones(tsi.NN,1); %arbitrary starting value for the variance of process x
 tsi.Sigma=eye(tsi.N);  %arbitrary starting value for the variance of transition model errors
 %Save the records of contributions to innovation at each time i
 contributionChain = NaN(tsi.T,tsi.NN);
@@ -136,57 +137,31 @@ for m=1:opts.reps %Gibbs sampling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 2: sample loadings that compose H through Bayesian regression
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-hload=[];
-error=NaN(tsi.T,tsi.NN);
-for ii=1:tsi.NN %loop over all observers
-    infI(:,ii)=oM(:,ii);
-    y=tsi.data(infI(:,ii),ii);
-    alpha = [cx(infI(:,ii)) tsi.x0(infI(:,ii)) tau(infI(:,ii),ii)]; %This needs to be the full predictor matrix
-    precY=1./rmat(ii); %Precision of observer i
-    sH=diag(Hsig(ii,:));
-    M=inv(inv(sH) + precY.*alpha'*alpha)*(inv(sH)*H0(ii,:)'+precY*alpha'*y);
-    V=inv(inv(sH) + precY.*alpha'*alpha);
-    %draw
-    hf=M+(randn(1,size(alpha,2))*chol(V))';
-    hload=[hload;hf']; %The factor dependent coefficients for H
-    error(infI(:,ii),ii)=y-alpha*hf;
-end
+[hload,errorN,infI]=coeffsample(tsi,opts);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 3: sample variance of the observers from inverse gamma distribution
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rmat=[];
-for ii=1:tsi.NN
-    rmati= IG(T0(ii),th0(ii),error(infI(:,ii),ii));
-    th(ii)=error(infI(:,ii),ii)'*error(infI(:,ii),ii);
-    rmat=[rmat rmati];
-end
-tsi.rmat=rmat;
-
+[tsi.rmat,th] = epsiloninvgamma(T0,th0,infI,errorN,tsi.NN);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 4: sample estimates of autoregressive parameters alpha
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [tsi.alpha,tsi.X,tsi.Y]=arsample(tsi,opts.cmpStYr);
-
 %sample VAR covariance for time-dependent X uncertainty
 [tsi.Sigma,mSigma,bSigma]=epsilonmagdependent(tsi.x0,tsi.X,tsi.alpha,tsi.Xprior,tsi.Xsig);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 5: Run Kalman filter to estimate x
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 tsi.hload=hload;
 opts.nonLin=false;
-opts.tDependence=true;
 [tsi.x0,tsi.contributionChain,tsi.x2,tsi.F,tsi.H]=carterkohn(tsi,opts,m);
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%step 7: If burnin completed, store state and observation model estimates
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if opts.dispProgress
     if mod(m,100) == 0 %display progress of chain
         disp([num2str(m) ' reps completed'])
     end
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%step 7: If burnin completed, store state and observation model estimates
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if m>opts.burn
     %save
     xAll(:,mm)=tsi.x2(:,1); %Reconstructed TSI
@@ -212,7 +187,7 @@ end
 if opts.dispProgress
     toc
 end
-outDat.H0=H0;outDat.Hsig=Hsig;outDat.T0=T0;
+outDat.H0=tsi.H0;outDat.Hsig=tsi.Hsig;outDat.T0=T0;
 outDat.th0=th0;outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=sindex;
 outDat.satindex=satindex;
 outDat.obsmatrix=obsmatrix;
@@ -225,5 +200,6 @@ end
 
 
 end
+
 
 

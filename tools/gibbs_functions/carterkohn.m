@@ -73,7 +73,7 @@ glf=pS.glf; % struct containing non-linear functions
 pindex=pS.pindex; % vector indicating which variables have non-linear relationships
 xbar=pS.xbar; % mean of the state vector
 end
-if isfield(opts,'tDependence') && opts.tDependence % flag for time-dependent factor loadings
+if isfield(pS,'tDependence') && pS.tDependence % flag for time-dependent factor loadings
 tau=pS.tau; % vector of time steps
 end
 if isfield(opts,'restrictOsf') && opts.restrictOsf
@@ -84,7 +84,7 @@ else
 end
 
 % Create matrix of factor loadings H
-if opts.tDependence % if time-dependent factor loadings
+if pS.tDependence % if time-dependent factor loadings
 H=zeros(NN,NN+L+1);
 H(:,1:2)=hload(:,1:2); % first two columns are the same for all time steps
 for ii = 1:NN % set the third column for each variable based on the time step
@@ -116,7 +116,7 @@ t=1;
 Q(1:N,1:N)=Sigma(t);
 
 % Prediction for the first step
-if opts.tDependence % if time-dependent factor loadings
+if pS.tDependence % if time-dependent factor loadings
 z10=[1 MU+X0*F' tau(t,:)];
 else % if not time-dependent factor loadings
 z10=[1 MU+X0*F'];
@@ -153,7 +153,7 @@ contributionChain(t,oM(t,:)) = K(1,:).*xi; %Record contribution of each obs to i
 %Update the state vector, z11, by adding the Kalman gain times the innovation, 
 %xi, to the predicted state vector, z10. If there is time dependence in the 
 %model, the time vector, t, is also included.
-if opts.tDependence
+if pS.tDependence
     z11=[1 (z10(2:(L+1))'+K*xi')' tau(1,:)];
 else
     z11=[1 (z10(2:(L+1))'+K*xi')'];
@@ -168,7 +168,7 @@ for t=2:T
     ht=h(:,2:L+1); %subset of coefficients scaling state vectors [x_t x_t-1]
     %NOTE: AS OF 9/6/22 removed reference to MU in following line, as it's assumed to be
     %0
-    if opts.tDependence
+    if pS.tDependence
         z10=[1 z11(2:(L+1))*F' tau(t,:)];
     else
         z10=[1 z11(2:(L+1))*F'];
@@ -191,7 +191,7 @@ for t=2:T
     %updating
     K=(v10*ht')*inv(fxi); %Calculate Kalman gain
     contributionChain(t,oM(t,:)) = K(1,:).*xi;
-    if opts.tDependence
+    if pS.tDependence
         z11=[1 (z10(2:(L+1))'+K*xi')' tau(t,:)];
     else
         z11=[1 (z10(2:(L+1))'+K*xi')'];
