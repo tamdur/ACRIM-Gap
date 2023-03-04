@@ -19,41 +19,12 @@ obsmatrix='obs_23_02_01'; %Load data array, with colLabels corresponding to obse
 load(obsmatrix); %From makeobsmatrix.m
 % outDat.mgScale=nanstd(valM(:,1));
 % valM(:,1)=valM(:,1)./nanstd(valM(:,1));
-%Seven columns of valM correspond to the following observers:
-% "BremenMgII"
-% "ERBS/ERBE"
-% "NIMBUS-7/HF"
-% "SILSO"
-% "SMM/ACRIM1"
-% "SOHO/VIRGO"
-% "UARS/ACRIM2"
 
 else
     obsmatrix='synthetic';
 end
-if ~isfield(opts,'randomizeChain') %Load default observation array, otherwise load provided one
-    opts.randomizeChain=false;
-end
-if ~isfield(opts,'excludeFliers')
-    opts.excludeFliers=false;%true to remove outlier observations from examined dataset
-end
-if ~isfield(opts,'reps')
-    opts.reps=10500; %Total steps of Gibbs Sampler
-end
-if ~isfield(opts,'burn')
-    opts.burn=500; %Steps excluded in burnin period
-end
-if ~isfield(opts,'logContributions')
-    opts.logContributions=false; %Set to true to include record of innovation contributions
-end
-if ~isfield(opts,'dispProgress')
-    opts.dispProgress=false; %Set to true to display progress of every 100 iterations
-end
-if ~isfield(opts,'lags')
-    opts.lags=2; %Set process to AR(2)
-end
-opts.normalize=false; %Set to true to normalize data within. For getpriors call
-opts.cmpStYr=1978;
+%Create default settings if not specified
+opts = checkopts(opts);
 %Develop a set of monthly observations from satellite and proxy
 %observations
 dateS=getdates;
@@ -69,14 +40,12 @@ end
 %Specify priors for H coefficients
 oindex=[1 0 1 1 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
 tindex=[1 1 0 1 1 0 1]; %tindex=1 for observers with time dependent drift, 0 otherwise
-sindex=[0 0 1 0 0 1 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
+pindex=[0 0 1 0 0 1 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
 satindex=tindex; %satindex=1 for observers that are satellites, 0 otherwise
 
-valMAll=valM;
 tsi.data = valM;
 tsi.dateM=dateM;
 tsi.oM=oM;
-iObs = nansum(oM,1);
 tsi.T=size(tsi.data,1);
 tsi.L=opts.lags;  %number of lags in the VAR
 tsi.N=1; %Number of factors/variables in the transition equation
@@ -99,12 +68,12 @@ tsi.tDependence=true; %True to use drift predictor
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Load priors for observation model
-[tsi.H0, tsi.Hsig, T0, th0,tsi.Xprior,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,sindex,valM,oM,...
-    satindex,colLabels,opts);
+[tsi.H0, tsi.Hsig, T0, th0,tsi.Xprior,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,pindex,valM,oM,...
+    satindex,colLabels,opts,[],dateM);
 
 %get an intial guess for the process
 x0=zeros(tsi.T,1);
-guess1 = nanmean(tsi.data(:,~sindex),2); %mean of satellite observations
+guess1 = nanmean(tsi.data(:,~pindex),2); %mean of satellite observations
 x0(~isnan(guess1))=guess1(~isnan(guess1));
 if opts.randomizeChain
     rng('shuffle')
@@ -187,8 +156,8 @@ end
 if opts.dispProgress
     toc
 end
-outDat.H0=tsi.H0;outDat.Hsig=tsi.Hsig;outDat.T0=T0;
-outDat.th0=th0;outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=sindex;
+outDat.H0=tsi.H0;outDat.Hsig=tsi.Hsig;outDat.T0=T0;outDat.th0=th0;
+outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=pindex;
 outDat.satindex=satindex;
 outDat.obsmatrix=obsmatrix;
 outDat.opts=opts; %Save the input info

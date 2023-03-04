@@ -33,7 +33,7 @@ twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gap
 priorposterior=0; %Plot the priors and posteriors for each observer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-BTSIPath= 'ar2_23_02_22.mat';
+BTSIPath= 'ar2_23_03_03.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
 obsmatrix=outDat.obsmatrix;
 
