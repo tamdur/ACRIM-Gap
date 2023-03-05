@@ -19,7 +19,7 @@ if mainExperiment
     opts.logContributions=true;
     opts.normalize=false;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
-    opts.saveFile='ar2_23_03_04.mat';
+    opts.saveFile='ar2_23_03_05.mat';
     runchain_23_02_21([],[],[],opts);
 end
 

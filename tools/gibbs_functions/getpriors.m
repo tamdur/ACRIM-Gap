@@ -1,9 +1,45 @@
-function[H0, Hsig, T0, th0,X0,Xsig] = getpriors(NN,oindex,tindex,pindex,valM,oM,...
-    satindex,colLabels,opts,priorpath,satDateM)
+function [H0, Hsig, T0, th0, X0, Xsig] = getpriors(NN, oindex, tindex, pindex, valM, ...
+    oM, satindex, colLabels, opts, priorpath, satDateM)
+% GETPRIORS - generate prior hyperparameter estimates for a Bayesian linear regression model
+% [H0, Hsig, T0, th0, X0, Xsig] = getpriors(NN, oindex, tindex, pindex, valM, oM, satindex, 
+%  colLabels, opts, priorpath, satDateM)
+%
+% INPUTS:
+% - NN: scalar integer representing the number of columns in the data matrix
+% - oindex: vector of length NN representing whether each observer requires offsets (1) or not (0)
+% - tindex: vector of length NN representing whether each observer requires a time variable (1) or not (0)
+% - pindex: vector of length NN representing whether each observer is a proxy variable (1) or not (0)
+% - valM: data matrix of size N x NN, where N is the number of observations
+% - oM: valid observation matrix of size N x NN, where N is the number of
+% observations
+% - satindex: vector of length NN representing whether each column is a satellite (1) or not (0)
+% - colLabels: string array of length NN containing column labels
+% - opts: struct containing options for the function, including:
+%   - priorthresh: threshold for using overlapping observers be it years or months (default: 24)
+%   - NRLTSIprior: whether to use NRLTSI estimates of TSI to set priors for proxies (default: false)
+%   - normalize: whether to normalize observations before comparing them (default: false)
+%   - type: type of observation (default: 'sat')
+%   - save: whether to save priors to a file (default: false)
+%   - HsigScale: scale factor for prior sigma for H (default: 1)
+% - priorpath: path to file containing priors (default: empty)
+% - satDateM: vector containing satellite dates
+%
+% OUTPUTS:
+% - H0: prior for scaling H of form [a_i b_i c_i]
+% - Hsig: prior sigma for scaling H
+% - T0: vector of initial hyperparameters for the prior noise variance
+% - th0: prior for proxy noise variance
+% - X0: initial guess for X
+% - Xsig: prior sigma for X
+
+
 if ~isfield(opts,'priorthresh')
     opts.priorthresh=24; %Threshold for using overlapping observers be it years or months
 end
-savePath='mat_files/obspriors_23_01_13.mat'; %Save path if priors are to be saved
+currDate=datetime;
+savePath=['mat_files/obspriors_' num2str(mod(currDate.Year,100)) '_' ...
+    num2str(currDate.Month) '_' num2str(currDate.Day) '.mat'];
+
 %Generate prior hyperparameter estimates
 if ~exist('priorpath', 'var') || isempty(priorpath)
     nObs = length(colLabels);
@@ -14,41 +50,64 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
     %Use NRLTSI estimates of TSI to set priors for proxies
     %and also the innovation uncertainty
     if isfield(opts,'NRLTSIprior') && opts.NRLTSIprior==true
+        % If the NRLTSIprior option is set to true in the opts struct, use NRLTSI data
+        % to set priors for proxies
+        
+        % Load the NRLTSI data
         load oTSI_23_02_01.mat
         tsiNRL=oTSI(4).mthtsi;
         dateNRL=oTSI(4).mthdatetime;
-        x=tsiNRL(dateNRL>=satDateM(1) & dateNRL <= satDateM(end));
+        
+        % Filter the NRLTSI data for the satellite period
+        x=tsiNRL(dateNRL>=satDateM(1)-caldays(5) & dateNRL <= satDateM(end)+caldays(5));
         x=x-nanmean(x);
+        % Loop over all the proxy observations
         for ii=1:sum(pindex)
+            % Get the overlapping observations between the proxy and the
+            % satellites
             overlap = oM(:,proxInd(ii));
             y=valM(overlap,proxInd(ii));
+            
+            % Perform linear regression between the overlapping NRLTSI data and the proxy
             pred=[ones(length(y),1) x(overlap)];
             b=regress(y,pred);
+            
+            % Calculate the residuals between the observed proxy data and the
+            % regression estimate
             res = y - pred*b;
+            
+            % Store the prior information in a struct
             obsPrior(proxInd(ii)).type = "process";
             obsPrior(proxInd(ii)).name = colLabels(proxInd(ii));
             obsPrior(proxInd(ii)).std = nanstd(res);
             obsPrior(proxInd(ii)).b = b(1);
             obsPrior(proxInd(ii)).m = b(2);
-            %One sigma uncertainty in offset (note this is large due to
-            %lack of centering of proxy records)
-            obsPrior(proxInd(ii)).bsig = b(2).*.5; 
-            %One sigma uncertainty in scaling
-            obsPrior(proxInd(ii)).msig = b(2).*.25; 
+            
+            % One sigma uncertainty in offset (note this is large due to
+            % lack of centering of proxy records)
+            obsPrior(proxInd(ii)).bsig = b(2)*.5;
+            % One sigma uncertainty in scaling
+            obsPrior(proxInd(ii)).msig = b(2)*.25;
         end
         
-        %Get residual errors of autoregressive AR model
+        % Get residual errors of autoregressive AR model
+        % Key onto the cyclic component of the NRLTSI data by subtracting a
+        % moving average of window size 12*11 (11 years)
         YCycleAll=x-movmean(x,12.*11,'omitnan');
-        YCycleAll=YCycleAll-min(YCycleAll); %Set Y-intercept to minimum TSI value
+        % Set Y-intercept to minimum TSI value
+        YCycleAll=YCycleAll-min(YCycleAll);
         Y=x;
         X=[];
-        for iL=1:opts.lags %Create columns for lagged estimates of x
+        for iL=1:opts.lags % Create columns for lagged estimates of x
             X=[X lag0(x,iL)];
         end
-        X=[ones(size(Y,1),1) X];%To ensure a stable linear regression, estimate mean of TSI
+        X=[ones(size(Y,1),1) X];
+        
         Y=Y(2:end,:);
         X=X(2:end,:);
         
+        % Calculate the regression coefficients of the residuals as a
+        % function of solar cycle magnitude
         M=inv(X'*X)*(X'*Y);
         errorsx=Y-X*M;
         
@@ -60,7 +119,8 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
         
     %Use raw observations to set priors, RISK OF REGRESSION DILUTION
     else
-        %Make a set of priors for the proxy observations using all satellites
+        %If not using NRLTSI, set initial state vector to zero and estimate
+        %uncertainty from intercomparisons
         for ii = 1:sum(isProx)
             ind=proxInd(ii);
             iS = 1;
@@ -120,7 +180,8 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
                 obsPrior(ii).type = "sat";
             end
             obsPrior(ii).name = colLabels(ii);
-            obsPrior(ii).std = sqrt(nanmean(vSat))./sqrt(2); %Correct for satellite noise coming from two observers
+            %Correct for satellite noise coming from two observers
+            obsPrior(ii).std = sqrt(nanmean(vSat))./sqrt(2); 
         end
     end
     colsPrior=colLabels;
