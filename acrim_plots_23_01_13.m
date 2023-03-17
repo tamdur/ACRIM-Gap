@@ -9,7 +9,7 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =0; %plot Figure 1 of manuscript
+tsiComparison =1; %plot Figure 1 of manuscript
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
@@ -26,14 +26,14 @@ tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 threeScenarioAnalysis=0; %Analyze output of three scenario test for debugging purposes
-allCalcs=0;
+allCalcs=1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OLD Figures and Calculations
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 priorposterior=0; %Plot the priors and posteriors for each observer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-BTSIPath= 'ar2_pmod_23_03_17.mat';
+BTSIPath= 'ar2main_23_03_17.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 load(obsmatrix); %From makeobsarray.m
@@ -1043,8 +1043,8 @@ if allCalcs
     cMean{34}=prctile(a(2,:),50);c25{34}=prctile(a(2,:),2.5);c975{34}=prctile(a(2,:),97.5); %alpha 2 posterior
     cMean{35}=outDat.Xprior(1);c25{35}=outDat.Xprior(1)-2.*outDat.Xsig(1);c975{35}=outDat.Xprior(1)+2.*outDat.Xsig(1); %q prior
     cMean{36}=prctile(outDat.b,50);c25{36}=prctile(outDat.b,2.5);c975{36}=prctile(outDat.b,97.5); %q posterior
-%     cMean{37}=outDat.Xprior(2);c25{37}=outDat.Xprior(2)-2.*outDat.Xsig(2);c975{37}=outDat.Xprior(2)+2.*outDat.Xsig(2); %m prior
-%     cMean{38}=prctile(outDat.m,50);c25{38}=prctile(outDat.m,2.5);c975{38}=prctile(outDat.m,97.5); %m posterior
+    cMean{37}=outDat.Xprior(2);c25{37}=outDat.Xprior(2)-2.*outDat.Xsig(2);c975{37}=outDat.Xprior(2)+2.*outDat.Xsig(2); %m prior
+    cMean{38}=prctile(outDat.m,50);c25{38}=prctile(outDat.m,2.5);c975{38}=prctile(outDat.m,97.5); %m posterior
     
     
     rows=["BTSI ACRIM Gap Estimate";"CPMDF ACRIM Gap Estimate";"ACRIM ACRIM Gap Estimate";...
@@ -1058,7 +1058,7 @@ if allCalcs
         "CPMDF-All 95% CI";"ACRIM-All 95% CI";
         "CPMDF 95% coverage";"ACRIM 95% coverage";"statistical power";"Frohlich ERBE Drift";...
         "\alpha_1 prior"; "\alpha_1 posterior";"\alpha_2 prior";"\alpha_2 posterior";...
-        "q prior"; "q posterior"];
+        "q prior"; "q posterior";"m prior";"m posterior"];
     displayTable=cell2table([cMean c25 c975],'VariableNames',["Mean";"2.5th percentile";"97.5th percentile"],'RowNames',rows)
     
      

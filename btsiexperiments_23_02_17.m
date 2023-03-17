@@ -35,7 +35,7 @@ if mainExperiment
     opts.randomizeChain=false;
     opts.logContributions=true;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
     opts.saveFile='ar2main_23_03_17.mat';
     runchain_23_02_21([],[],[],[],opts);
@@ -52,7 +52,7 @@ if noEarlyACRIM
     opts.randomizeChain=false;
     opts.logContributions=false;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
     opts.saveFile='ar2_noearlyacrim_23_03_17.mat';
     runchain_23_02_21(valM,oM,dateM,colLabels,opts);
@@ -68,7 +68,7 @@ if noSpots
     opts.randomizeChain=false;
     opts.logContributions=true;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
     opts.saveFile='ar2_nospots_23_03_17.mat';
     runchain_23_02_21(valM,oM,dateM,colLabels,opts);
@@ -84,7 +84,7 @@ if noERBE
     opts.randomizeChain=false;
     opts.logContributions=true;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
     opts.saveFile='ar2_noserbe_23_03_17.mat';
     runchain_23_02_21(valM,oM,dateM,colLabels,opts);
@@ -99,7 +99,7 @@ if dataPMOD
     opts.randomizeChain=false;
     opts.logContributions=true;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor, 1 default
     opts.saveFile='ar2_pmod_23_03_17.mat';
     runchain_23_02_21(valM,oM,dateM,colLabels,opts);
