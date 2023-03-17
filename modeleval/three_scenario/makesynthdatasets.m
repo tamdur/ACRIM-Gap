@@ -8,7 +8,7 @@ if ~exist('rngN','var') || isempty(rngN)
 else
     rng(rngN)
 end
-nSets=3;
+nSets=1000;
 %Create starting parameters
 [Ainit,epsilon,rho,t,oM] = initobservationmodelparams;
 
