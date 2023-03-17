@@ -3,6 +3,8 @@
 
 # Ignore unneeded mat files
 /mat_files_old
+/chain_output/alt_runs
+/chain_output/old_output
 
 #Ignore unneeded matlab scripts and functions
 /scripts_old
