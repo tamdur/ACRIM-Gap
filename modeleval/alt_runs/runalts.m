@@ -49,7 +49,7 @@ if synthGeneric
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
     opts.NRLTSIprior=true;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,[],[]);
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_generic_23_03_17.mat',opts);
 end
@@ -64,7 +64,7 @@ if synthNoRho
     opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
     opts.NRLTSIprior=true;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,0,[]);
     runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_03_17.mat',opts);
 end

@@ -25,7 +25,10 @@ if ~isfield(optsIn,'lags')
     optsIn.lags=2; %Set process to AR(2)
 end
 if ~isfield(optsIn,'normalize')
-    optsIn.normalize=false; %Set to true to normalize data within. For getpriors call
+    optsIn.normalize=true; %Set to true to normalize data within. For getpriors call
+end
+if ~isfield(optsIn,'magDependent')
+    optsIn.magDependent=true; %Set to true to normalize data within. For getpriors call
 end
 optsIn.cmpStYr=1978;
 optsOut=optsIn;

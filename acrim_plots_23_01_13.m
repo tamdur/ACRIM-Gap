@@ -26,14 +26,14 @@ tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 threeScenarioAnalysis=0; %Analyze output of three scenario test for debugging purposes
-allCalcs=1;
+allCalcs=0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OLD Figures and Calculations
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 priorposterior=0; %Plot the priors and posteriors for each observer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-BTSIPath= 'ar2main_23_03_17.mat';
+BTSIPath= 'ar2_23_03_17.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 load(obsmatrix); %From makeobsarray.m
