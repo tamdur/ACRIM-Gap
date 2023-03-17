@@ -21,7 +21,7 @@ trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
-table2=1; %Calculate values for Table 2, the posterior model parameters
+table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
@@ -33,9 +33,14 @@ twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gap
 priorposterior=0; %Plot the priors and posteriors for each observer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
-BTSIPath= 'ar2_23_03_05.mat';
+BTSIPath= 'ar2_pmod_23_03_17.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
-obsmatrix=outDat.obsmatrix;
+obsmatrix='obs_23_02_01.mat';
+load(obsmatrix); %From makeobsarray.m
+if isfield(outDat.opts,'valM')
+    dateM=outDat.opts.dateM;oM=outDat.opts.oM;colLabels=outDat.opts.colLabels;
+    valM=outDat.opts.valM;
+end
 
 if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
     tau=t;
@@ -49,9 +54,13 @@ end
 % obsmatrix='obscarrington_23_02_02.mat';
 %--------------------------------------------------------------------------
 
-
-load(obsmatrix); %From makeobsarray.m
-valAll=valM-offsets; %Remove mean offset
+if isfield(outDat,'offset') && isfield(outDat,'scaling')
+    for ii=1:size(A,1)
+        A(ii,:,:)=A(ii,:,:).*outDat.scaling(ii)'+outDat.offset(ii)';
+        sigY(ii,:)=sigY(ii,:).*outDat.scaling(ii).^2;
+        %outDat.contributionChain(:,:,ii)=outDat.contributionChain(:,:,ii).*outDat.scaling(ii);
+    end
+end
 dateS=getdates;
 dates=dateS.acrimplusfive;
 %Create x-axis points for ACRIM-Gap demarcation
@@ -216,7 +225,7 @@ if tsiComparison
     saveas(gcf,'plots/tsicompare_23_02_25.png')
 end
 if priorposterior2
-    datesave='23_02_22'; %Date for figure name
+    datesave='23_03_16'; %Date for figure name
     satindex=outDat.satindex;
     obsUsed=satindex;
     obsUsed(3)=true; %Turn on Bremen Mg-II
@@ -379,7 +388,7 @@ if obsContributions
     smoothWindow = 36;
     conChain=outDat.contributionChain;
     %Reorient
-    lI=[4;1;3;5;2;7;6];
+    lI=[6;3;5;1;4;2;7];
     A=A(lI,:,:);
     colLabels=colLabels(lI);
     offsets=offsets(lI);
@@ -911,10 +920,10 @@ if allCalcs
     cMean{13}=prctile(A(5,3,:),50);
     c25{13}=prctile(A(5,3,:),2.5);
     c975{13}=prctile(A(5,3,:),97.5);
-    load ar2_noERBE_23_02_21.mat
-    cMean{14}=prctile(A(5,3,:),50);
-    c25{14}=prctile(A(5,3,:),2.5);
-    c975{14}=prctile(A(5,3,:),97.5);
+    load ar2_noerbe_23_03_17.mat
+    cMean{14}=prctile(A(4,3,:),50);
+    c25{14}=prctile(A(4,3,:),2.5);
+    c975{14}=prctile(A(4,3,:),97.5);
     load(BTSIPath);
     cMean{15}=prctile(A(4,3,:),50);
     c25{15}=prctile(A(4,3,:),2.5);
@@ -937,7 +946,7 @@ if allCalcs
     end
     cMean{16}=linD(5);
     cMean{17}=linD(1);
-    load ar2_shortACRIM1_23_02_21.mat
+    load ar2_noearlyacrim_23_03_17.mat
     cMean{18}=prctile(A(1,3,:),50);
     c25{18}=prctile(A(1,3,:),2.5);
     c975{18}=prctile(A(1,3,:),97.5);
@@ -1034,8 +1043,8 @@ if allCalcs
     cMean{34}=prctile(a(2,:),50);c25{34}=prctile(a(2,:),2.5);c975{34}=prctile(a(2,:),97.5); %alpha 2 posterior
     cMean{35}=outDat.Xprior(1);c25{35}=outDat.Xprior(1)-2.*outDat.Xsig(1);c975{35}=outDat.Xprior(1)+2.*outDat.Xsig(1); %q prior
     cMean{36}=prctile(outDat.b,50);c25{36}=prctile(outDat.b,2.5);c975{36}=prctile(outDat.b,97.5); %q posterior
-    cMean{37}=outDat.Xprior(2);c25{37}=outDat.Xprior(2)-2.*outDat.Xsig(2);c975{37}=outDat.Xprior(2)+2.*outDat.Xsig(2); %m prior
-    cMean{38}=prctile(outDat.m,50);c25{38}=prctile(outDat.m,2.5);c975{38}=prctile(outDat.m,97.5); %m posterior
+%     cMean{37}=outDat.Xprior(2);c25{37}=outDat.Xprior(2)-2.*outDat.Xsig(2);c975{37}=outDat.Xprior(2)+2.*outDat.Xsig(2); %m prior
+%     cMean{38}=prctile(outDat.m,50);c25{38}=prctile(outDat.m,2.5);c975{38}=prctile(outDat.m,97.5); %m posterior
     
     
     rows=["BTSI ACRIM Gap Estimate";"CPMDF ACRIM Gap Estimate";"ACRIM ACRIM Gap Estimate";...
@@ -1049,7 +1058,7 @@ if allCalcs
         "CPMDF-All 95% CI";"ACRIM-All 95% CI";
         "CPMDF 95% coverage";"ACRIM 95% coverage";"statistical power";"Frohlich ERBE Drift";...
         "\alpha_1 prior"; "\alpha_1 posterior";"\alpha_2 prior";"\alpha_2 posterior";...
-        "q prior"; "q posterior"; "m prior"; "m posterior"];
+        "q prior"; "q posterior"];
     displayTable=cell2table([cMean c25 c975],'VariableNames',["Mean";"2.5th percentile";"97.5th percentile"],'RowNames',rows)
     
      

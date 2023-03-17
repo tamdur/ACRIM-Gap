@@ -4,9 +4,9 @@
 #SBATCH -e runalts.err
 #SBATCH -N 1
 #SBATCH -c 32
-#SBATCH -t 0-02:30
-#SBATCH -p huce_intel
-#SBATCH --mem=32G
+#SBATCH -t 0-06:00
+#SBATCH -p huce_ice
+#SBATCH --mem=105G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=amdur@g.harvard.edu
 

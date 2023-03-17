@@ -4,7 +4,7 @@ function runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,rngN,savePath,opts)
 % Ted Amdur
 % 2023/02/15
 
- parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
 %Make sure everything is visible
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')
@@ -32,6 +32,8 @@ if ~exist('opts','var') || isempty(opts)
     opts.burnin = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=1500; %Total length of chain, including burn-in
     opts.dispProgress=false;
+    opts.normalize=true;
+    opts.magDependent=false;
 end
 
 
@@ -42,7 +44,7 @@ tN=length(ACRIM); %Number of synthetic datasets to be inferred
 parfor ii=1:tN
     %Run BTSI on ACRIM scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(ACRIM(ii).valM,oM,colLabels,opts);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(ACRIM(ii).valM,oM,dateM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).ACRIM.Aout=Aout;
     threeTest(ii).ACRIM.sigYOut=sigYOut;
@@ -55,7 +57,7 @@ parfor ii=1:tN
     
     %Run BTSI on PMOD scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(PMOD(ii).valM,oM,colLabels,opts);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(PMOD(ii).valM,oM,dateM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).PMOD.Aout=Aout;
     threeTest(ii).PMOD.sigYOut=sigYOut;
@@ -69,7 +71,7 @@ parfor ii=1:tN
     
     %Run BTSI on A/P scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(AP(ii).valM,oM,colLabels,opts);
+    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(AP(ii).valM,oM,dateM,colLabels,opts);
     [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
     threeTest(ii).AP.Aout=Aout;
     threeTest(ii).AP.sigYOut=sigYOut;

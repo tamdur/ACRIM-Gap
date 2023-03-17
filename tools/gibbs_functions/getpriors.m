@@ -1,4 +1,4 @@
-function [H0, Hsig, T0, th0, X0, Xsig] = getpriors(NN, oindex, tindex, pindex, valM, ...
+function [H0, Hsig, T0, th0, eta0, Xsig] = getpriors(NN, oindex, tindex, pindex, valM, ...
     oM, satindex, colLabels, opts, priorpath, satDateM)
 % GETPRIORS - generate prior hyperparameter estimates for a Bayesian linear regression model
 % [H0, Hsig, T0, th0, X0, Xsig] = getpriors(NN, oindex, tindex, pindex, valM, oM, satindex, 
@@ -29,20 +29,16 @@ function [H0, Hsig, T0, th0, X0, Xsig] = getpriors(NN, oindex, tindex, pindex, v
 % - Hsig: prior sigma for scaling H
 % - T0: vector of initial hyperparameters for the prior noise variance
 % - th0: prior for proxy noise variance
-% - X0: initial guess for X
-% - Xsig: prior sigma for X
-
+% - eta0: initial guess for eta
+% - Xsig: prior sigma for eta
 
 if ~isfield(opts,'priorthresh')
     opts.priorthresh=24; %Threshold for using overlapping observers be it years or months
 end
-currDate=datetime;
-savePath=['mat_files/obspriors_' num2str(mod(currDate.Year,100)) '_' ...
-    num2str(currDate.Month) '_' num2str(currDate.Day) '.mat'];
 
 %Generate prior hyperparameter estimates
 if ~exist('priorpath', 'var') || isempty(priorpath)
-    nObs = length(colLabels);
+    nObs = size(valM,2);
     %Make labels for which records fall under satellite vs proxy
     proxInd=find(pindex);
     satInd=find(satindex);
@@ -113,15 +109,23 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
         
         %Estimate regression parameters of noise as a fn. of solar
         %cycle magnitude
-        [X0,bint]=regress(abs(errorsx),[ones(length(errorsx),1) YCycleAll(2:end)]);
-        Xsig=(bint(:,2)-bint(:,1))./4; %Convert from 95\% CI to one sigma
+        if opts.magDependent
+            [eta0,bint]=regress(errorsx.^2,[ones(length(errorsx),1) YCycleAll(2:end)]);
+            if eta0(1)<(0.05.^2)
+                eta0(1)=0.05.^2; %Set lower baseline of 0.05 W/m^2 innovation
+            end
+            Xsig=(bint(:,2)-bint(:,1))./4; %Convert from 95\% CI to one sigma
+        else
+            eta0=mean(errorsx.^2);
+            Xsig=NaN;
+        end
         
         
     %Use raw observations to set priors, RISK OF REGRESSION DILUTION
     else
         %If not using NRLTSI, set initial state vector to zero and estimate
         %uncertainty from intercomparisons
-        for ii = 1:sum(isProx)
+        for ii = 1:sum(~satindex)
             ind=proxInd(ii);
             iS = 1;
             vProx = [];
@@ -161,13 +165,8 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
             while iS <= nObs
                 if iS ~= ii && satindex(iS)
                     overlap = logical(oM(:,iS).*oM(:,ii));
-                    if opts.normalize
-                        s1 = normPH(valM(overlap,ii));
-                        s2 = normPH(valM(overlap,iS)); 
-                    else
-                        s1 = valM(overlap,ii) - mean(valM(overlap,ii));
-                        s2 = valM(overlap,iS) - mean(valM(overlap,iS));
-                    end
+                    s1 = valM(overlap,ii) - mean(valM(overlap,ii));
+                    s2 = valM(overlap,iS) - mean(valM(overlap,iS));
                     dSat = s2-s1;
                     vSat(iS) = nanvar(dSat,1);
                 end
@@ -186,6 +185,10 @@ if ~exist('priorpath', 'var') || isempty(priorpath)
     end
     colsPrior=colLabels;
     if isfield(opts,'save')
+        %Create save path if we're saving the file
+        currDate=datetime;
+        savePath=['mat_files/obspriors_' num2str(mod(currDate.Year,100)) '_' ...
+            num2str(currDate.Month) '_' num2str(currDate.Day) '.mat'];
         save(savePath,'obsPrior','colsPrior')
     end
 else
@@ -195,19 +198,38 @@ end
 priFrac = 0.25; %Fraction of the 'observations' for sigX, sigY to be from prior
 offSig = 5; %prior satellite variance for a (offset)
 mSig = 0.25; %prior variance for c (satellite drift)
-
 H0=zeros(NN,3);H0(:,2) = 1; %prior for scaling H of form [a_i b_i c_i]
 Hsig=1E-12.*ones(NN,3);
-Hsig=Hsig.*H0(:,2);
-Hsig(:,1)=Hsig(:,1)+(offSig.*oindex');%prior sigma for offset
-Hsig(:,3)=Hsig(:,3)+(mSig.*tindex'); %prior sigma for drift
+if isfield(opts,'type')
+    if strcmp(opts.type,'fac')
+        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior sigma for offset
+        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior sigma for scaling
+    end
+    if strcmp(opts.type,'spot')
+        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior sigma for offset
+        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior sigma for scaling
+        for ii=1:length(obsPrior)
+            if strcmp(obsPrior(ii).name,"SATIRE-S Sunspot Contribution")
+                H0(ii,2)=-1;
+            end
+        end
+    end
+    if strcmp(opts.type,'osf')
+        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior sigma for offset
+        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior sigma for scaling
+    end
+else
+    Hsig(:,1)=Hsig(:,1)+(offSig.*oindex');%prior sigma for offset
+    Hsig(:,2)=Hsig(:,2)+(1000.*pindex');%prior sigma for scaling
+    Hsig(:,3)=Hsig(:,3)+(mSig.*tindex'); %prior sigma for drift
+end
 %Make changes for proxies if linearity assumed (first row sunspots, second row mg)
-proxI=find(pindex);%indices for proxies
+proxI=find(~satindex);%indices for proxies
 for iP=1:length(proxI)
     Hsig(proxI(iP),1)=obsPrior(proxI(iP)).bsig.^2; %Var uncertainty for proxy offset
     Hsig(proxI(iP),2)=obsPrior(proxI(iP)).msig.^2; %var uncertainty for proxy scaling
-    H0(proxI(iP),2)=obsPrior(proxI(iP)).m; %Proxy Scaling uncertainty prior
     Hsig(proxI(iP),3)=1E-12.*H0(proxI(iP),2).*ones(length(proxI(iP)),1); %Fix slope
+    H0(proxI(iP),2)=obsPrior(proxI(iP)).m; %Proxy Scaling uncertainty prior
 end
 
 if isfield(opts,'HsigScale')

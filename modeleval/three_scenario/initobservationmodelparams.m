@@ -18,7 +18,7 @@ sindex=[0 0 1 0 0 1 0]; %sindex=1 for observers with non-identity scaling to TSI
 satindex=find(tindex); %satindex=1 for observers that are satellites, 0 otherwise
 
 %Load the BTSI output
-load ar2_23_01_14.mat
+load ar2_23_03_17.mat
 
 A0=mean(A,3);
 Ainit=zeros(size(A0));

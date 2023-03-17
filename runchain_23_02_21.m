@@ -1,4 +1,4 @@
-function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_23_02_21(valM,oM,colLabels,opts)
+function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_23_02_21(valM,oM,dateM,colLabels,opts)
 %runchain_23_02_21.m PRODUCE GIBBS SAMPLING OUTPUT OF BAYESIAN KALMAN
 %FILTER MODEL USING SATLELLITE AND PROXY DATA.
 %
@@ -15,14 +15,19 @@ function [xAll,sigY,sigX,theta,a,A,tau,outDat] = runchain_23_02_21(valM,oM,colLa
 outDat.script=mfilename; %Save name of script
 
 if ~exist('valM','var') || isempty(valM) %Load default observation array, otherwise load provided one
-obsmatrix='obs_23_02_01'; %Load data array, with colLabels corresponding to observer source for each column
-load(obsmatrix); %From makeobsmatrix.m
-% outDat.mgScale=nanstd(valM(:,1));
-% valM(:,1)=valM(:,1)./nanstd(valM(:,1));
-
+    obsmatrix='obs_23_02_01'; %Load data array, with colLabels corresponding to observer source for each column
+    load(obsmatrix); %From makeobsmatrix.m
+    % outDat.mgScale=nanstd(valM(:,1));
+    % valM(:,1)=valM(:,1)./nanstd(valM(:,1));
 else
-    obsmatrix='synthetic';
+    obsmatrix='prespecified';
 end
+
+opts.valM=valM;
+opts.oM=oM;
+opts.dateM=dateM;
+
+    
 %Create default settings if not specified
 opts = checkopts(opts);
 %Develop a set of monthly observations from satellite and proxy
@@ -32,16 +37,29 @@ dateS=getdates;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Beginning of main script
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-if opts.excludeFliers %Code to remove outliers using a past run of BTSI
-    %load excludeMask_22_11_03.mat %from exclude_fliers_22_04_26.m
-    valM(excludeMask) = NaN;
-    oM(excludeMask) = false;
-end
 %Specify priors for H coefficients
 oindex=[1 0 1 1 1 1 1]; %oindex=1 for observers with varying offset, 0 for fixed
 tindex=[1 1 0 1 1 0 1]; %tindex=1 for observers with time dependent drift, 0 otherwise
 pindex=[0 0 1 0 0 1 0]; %sindex=1 for observers with non-identity scaling to TSI, 0 otherwise
 satindex=tindex; %satindex=1 for observers that are satellites, 0 otherwise
+
+%Remove removed observers
+keepI=sum(oM,1)~=0;
+valM=valM(:,keepI);oM=oM(:,keepI);oindex=oindex(keepI);tindex=tindex(keepI);
+pindex=pindex(keepI);satindex=satindex(keepI);colLabels=colLabels(keepI);
+
+if isfield(opts,'normalize') && opts.normalize %Normalize proxy variables for matrix calculations
+    scaling=ones(size(valM,2),1);
+    offset=zeros(size(valM,2),1);
+    proxies=find(pindex);
+    for ii=1:length(proxies)
+        scaling(proxies(ii))=nanstd(valM(oM(:,proxies(ii)),proxies(ii)));
+        offset(proxies(ii))=nanmean(valM(oM(:,proxies(ii)),proxies(ii)));
+        valM(:,proxies(ii))=(valM(:,proxies(ii))-offset(proxies(ii)))./scaling(proxies(ii));
+    end
+    outDat.offset=offset;
+    outDat.scaling=scaling;
+end
 
 tsi.data = valM;
 tsi.dateM=dateM;
@@ -62,13 +80,14 @@ for ii=1:tsi.NN
 end
 tsi.tau=tau;
 tsi.tDependence=true; %True to use drift predictor
+tsi.magDependent=opts.magDependent; %True to use heteroscedastic TSI innovation
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 1: establish starting values and priors
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Load priors for observation model
-[tsi.H0, tsi.Hsig, T0, th0,tsi.Xprior,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,pindex,valM,oM,...
+[tsi.H0, tsi.Hsig, T0, th0,tsi.eta0,tsi.Xsig] = getpriors(tsi.NN,oindex,tindex,pindex,valM,oM,...
     satindex,colLabels,opts,[],dateM);
 
 %get an intial guess for the process
@@ -85,8 +104,6 @@ tsi.ns=size(tsi.X0,2);
 tsi.V00=eye(tsi.ns);  %v[t-1|t-1]
 tsi.rmat=1E9.*ones(tsi.NN,1); %arbitrary starting value for the variance of process x
 tsi.Sigma=eye(tsi.N);  %arbitrary starting value for the variance of transition model errors
-%Save the records of contributions to innovation at each time i
-contributionChain = NaN(tsi.T,tsi.NN);
 
 %Prepare arrays to be saved
 NS=opts.reps-opts.burn;
@@ -116,13 +133,13 @@ for m=1:opts.reps %Gibbs sampling
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [tsi.alpha,tsi.X,tsi.Y]=arsample(tsi,opts.cmpStYr);
 %sample VAR covariance for time-dependent X uncertainty
-[tsi.Sigma,mSigma,bSigma]=epsilonmagdependent(tsi.x0,tsi.X,tsi.alpha,tsi.Xprior,tsi.Xsig);
+[tsi.Sigma,mSigma,bSigma]=epsilonmagdependent(tsi);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 5: Run Kalman filter to estimate x
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 tsi.hload=hload;
 opts.nonLin=false;
-[tsi.x0,tsi.contributionChain,tsi.x2,tsi.F,tsi.H]=carterkohn(tsi,opts,m);
+[tsi.x0,contributionChain,tsi.x2,tsi.F,tsi.H]=carterkohn(tsi,opts,m);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %step 7: If burnin completed, store state and observation model estimates
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -154,9 +171,11 @@ end
 
 end
 if opts.dispProgress
-    toc
+    outDat.tElapsed=toc
 end
+opts.colLabels=colLabels;
 outDat.H0=tsi.H0;outDat.Hsig=tsi.Hsig;outDat.T0=T0;outDat.th0=th0;
+outDat.Xprior=tsi.eta0;outDat.Xsig=tsi.Xsig;
 outDat.oindex=oindex;outDat.tindex=tindex;outDat.sindex=pindex;
 outDat.satindex=satindex;
 outDat.obsmatrix=obsmatrix;

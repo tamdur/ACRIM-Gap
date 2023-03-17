@@ -31,11 +31,14 @@ oM=pS.oM;
 rmat=pS.rmat;
 dateM=pS.dateM;
 cx=pS.cx;
-if pS.tDependence
-    tau=pS.tau;
-end
 H0=pS.H0;
 Hsig=pS.Hsig;
+if pS.tDependence
+    tau=pS.tau;
+else
+    H0=H0(:,1:2);
+    Hsig=Hsig(:,1:2);
+end
 x0=pS.x0;
 
 if isfield(opts,'cmpStYrRegress') && opts.cmpStYrRegress % Use drift predictor
