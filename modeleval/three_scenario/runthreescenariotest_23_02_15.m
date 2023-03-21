@@ -34,7 +34,7 @@ if ~exist('opts','var') || isempty(opts)
     opts.reps=1500; %Total length of chain, including burn-in
     opts.dispProgress=false;
     opts.normalize=true;
-    opts.magDependent=false;
+    opts.magDependent=true;
 end
 
 

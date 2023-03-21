@@ -4,9 +4,9 @@
 clearvars
 lag1=0;
 lag3=0;
-synthGeneric=0;
+synthGeneric=1;
 synthAltH=0;
-synthNoRho=1;
+synthNoRho=0;
 largeSynth=0;
 noERBE=0;
 altACRIM1=0;

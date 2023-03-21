@@ -6,11 +6,11 @@
 
 clearvars
 testBed=0; %Test different configurations of BTSI
-mainExperiment=0; %Run full experiment that results in published results and figures
+mainExperiment=1; %Run full experiment that results in published results and figures
 noEarlyACRIM=0; %Remove the first 20 months of observations from ACRIM1
 noSpots=0; %Run BTSI experiment without sunspot record
 noERBE=0; %Run without ERBE
-dataPMOD=1; %Run with PMOD corrected data
+dataPMOD=0; %Run with PMOD corrected data
 
 if testBed
     opts.burn = 500; %Number of burn-in reps assumed for chain length analysis

@@ -9,7 +9,7 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =0; %plot Figure 1 of manuscript
+tsiComparison =1; %plot Figure 1 of manuscript
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
@@ -20,7 +20,7 @@ gapChange=0; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
-table1=1; %Calculate parameter values for Table 1 of manuscript
+table1=0; %Calculate parameter values for Table 1 of manuscript
 table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
@@ -46,7 +46,16 @@ if ~exist('tau','var') %For old BTSI runs that named 'tau' 't'
     tau=t;
 end
 
-%
+%Fix ColLabels to be consistent with manuscript:
+cLTxt=[...
+    "ACRIM1/SMM";
+    "ACRIM2/UARS";
+    "Bremen Mg-II";
+    "ERBS/ERBE";
+    "Nimbus-7/HF";
+    "SILSO";
+    "SOHO/VIRGO"];
+colLabels=cLTxt;
 
 %--------------------------------------------------------------------------
 % UNCOMMENT IN ORDER TO USE CARRINGTON ROTATION RATHER THAN MONTHLY SUBSETS
@@ -156,7 +165,7 @@ if tsiComparison
     hold on
     cColor = get(gca,'colororder');
     %Get CI of our estimate,plot
-    tsix = prctile(xAll',[.5 5 50 95 99.5])';
+    tsix = prctile(xAll',[2.5 10 50 90 97.5])';
     for iS = 1:size(tsix,2)
         tsix(:,iS) = smoothPH(tsix(:,iS),smoothWindow);
     end
@@ -222,15 +231,17 @@ if tsiComparison
     xlim([datejd(dates(1)) datejd(dates(2))])
     ylim([-0.9 1.25])
     text(datetime(1984,7,1),1.3,'(c)','FontSize',fSize)
-    saveas(gcf,'plots/tsicompare_23_02_25.png')
+    saveas(gcf,'plots/tsicompare_23_03_18.png')
 end
 if priorposterior2
-    datesave='23_03_16'; %Date for figure name
+    datesave='23_03_18'; %Date for figure name
+    lI=[6;3;5;1;4;2;7];
     satindex=outDat.satindex;
     obsUsed=satindex;
     obsUsed(3)=true; %Turn on Bremen Mg-II
     obsUsed(6)=true; %Turn on SILSO spots
     satI=find(satindex);
+    satI=satI([4,1,3,2,5]);
     %Pull output from simulation
     %reps = outDat.reps;
     sC = squeeze(A(:,2,:));
@@ -247,7 +258,7 @@ if priorposterior2
     %Make the data that goes in the varpdf fields for each of 3 plots
     
     %First, do the offset variables
-    offsetsI = [5;2;3;6]';
+    offsetsI = [5;1;4;7]';
     th1M1 = H0(offsetsI,1);
     th2M1 = sqrt(Hsig(offsetsI,1));
     vals1 = oP(:,offsetsI);
@@ -274,7 +285,6 @@ if priorposterior2
     %------------------------------------------------------------------
     figure2('Position',[10 10 1000 1000])
     subplot('position',[.09 .715 .85 .26])
-    offsetsI = [5;2;3;6]';
     for ii = 1:4
         hold on
         th1 = th1M1(ii) + offsets(offsetsI(ii));
@@ -297,7 +307,7 @@ if priorposterior2
         plot(xPost,yPost,'Color',c(2*ii,:),'LineWidth',2)
     end
     h(5)=line([offsets(2) offsets(2)],[0 6],'Color',c(10,:),'LineWidth',2);
-    legend(h,colLabels(offsetsI),'Location','NorthWest')
+    legend(h,[colLabels(offsetsI);colLabels(2)],'Location','NorthWest')
     legend boxoff
     xlabel("W/m^{2}")
     set(gca,'ytick',[])
@@ -332,7 +342,7 @@ if priorposterior2
         h(ii)=plot(xPost,yPost,'Color',c(2*ii,:),'LineWidth',3);
     end
     h(ii+1)=plot(xP,yP,'Color','k','LineWidth',5);
-    legendtxt=[colLabels(offsetsI);"Prior Distribution"];
+    legendtxt=[colLabels(satI);"Prior Distribution"];
     legend(h,legendtxt,'Location','NorthWest')
     legend boxoff
     %xlim([quantile(vals2(:,ii),0.001) quantile(vals2(:,ii),0.999)])
@@ -428,7 +438,7 @@ if obsContributions
     ylabel('Fractional Contribution')
     set(gca,'FontSize',fSize)
     ylim([0 0.5])
-    saveas(gcf,'plots/obscontribution_23_02_22.png')
+    saveas(gcf,'plots/obscontribution_23_03_18.png')
     
 end
 if threeScenario
@@ -443,7 +453,7 @@ if threeScenario
         0.9,'LineStyle','--');
     hold on
     %First, plot the error structure sans AR(1)
-    satIndex=[5;7;2;3;6];
+    satIndex=[5;1;4;2;7];
     ind=1;
     for ii=1:length(satIndex)
         pred=Ainit(satIndex(ii),1)+Ainit(satIndex(ii),3).*tau(:,satIndex(ii));
@@ -465,7 +475,8 @@ if threeScenario
     
     %Plot a panel with the ACRIM Gap outputs
     clear h
-    load threetestcluster_rng1_23_02_21.mat
+    %load threetestcluster_rng1_23_02_21.mat
+    load threetestcluster_generic_23_03_17.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
@@ -513,12 +524,12 @@ if threeScenario
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/threescenario_23_02_23.png')
+    saveas(gcf,'plots/threescenario_23_03_18.png')
     
 end
 if nimbusCompare
     %Plot the comparison of Nimbus-7 with corrected satellites, proxies
-    cmpN=[5 7 1 2 4]; %indices of ACRIM1, ACRIM2, Mg-II, ERBE, SILSO, respectively
+    cmpN=[1 2 3 4 6]; %indices of ACRIM1, ACRIM2, Mg-II, ERBE, SILSO, respectively
     yOut=NaN(size(xAll,1),length(cmpN),size(xAll,2));
     for ii=1:size(xAll,2)
         for iN=1:length(cmpN)
@@ -562,7 +573,7 @@ if nimbusCompare
         set(gca,'FontSize',fSize)
     end
     xlabel('Year')
-    saveas(gcf,'plots/nimbus-7compare_23_02_23.png')
+    saveas(gcf,'plots/nimbus-7compare_23_03_18.png')
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -693,14 +704,14 @@ if table1
     offsets=offsets(table2order);
     oM=oM(:,table2order);
     sigY=sigY(table2order,:);
-    theta=theta(table2order,:);
+    theta=theta(table2order,:).*(outDat.scaling(table2order)).^2;
     t=tau(:,table2order);
     %Pull output from simulation
     rP = sigY;
     H0=outDat.H0(table2order);
     Hsig=outDat.Hsig(table2order);
     T0=outDat.T0(table2order);
-    th0=outDat.th0(table2order)';
+    th0=outDat.th0(table2order)'.*outDat.scaling(table2order).^2;
     
     obs=sum(oM,1);
     T=T0+obs;
@@ -716,6 +727,9 @@ if table1
 end
 if table2
     clear tabout
+%     for ii=1:size(A,1)
+%         A(ii,:,:)=A(ii,:,:).*outDat.scaling(ii);
+%     end
     offsets([5,1,4,2,7])=offsets([5,1,4,2,7])-offsets(2);
     table2order=[5;1;4;2;7;6;3];
     T0=outDat.T0(table2order);
@@ -725,7 +739,7 @@ if table2
         ind=table2order(ii);
         Asub=squeeze(A(ind,:,:));
         tabout(:,ii)=[offsets(ind);prctile(Asub(1,:),[2.5 50 97.5])'+offsets(ind);...
-            outDat.H0(ind,2);prctile(Asub(2,:),[2.5 50 97.5])';...
+            outDat.H0(ind,2).*outDat.scaling(table2order(ii));prctile(Asub(2,:),[2.5 50 97.5])';...
             prctile(Asub(3,:),[2.5 50 97.5])';...
             e0(ind)./outDat.H0(table2order(ind),2);prctile(sqrt(sigY(ind,:))./Asub(2,:),[2.5 50 97.5])'];
     end
@@ -987,7 +1001,7 @@ if allCalcs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Calculate 4 scenario numbers
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    load threetestcluster_rng1_23_02_21.mat
+    load threetestcluster_generic_23_03_17.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
