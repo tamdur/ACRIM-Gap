@@ -16,7 +16,7 @@ threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 nimbusCompare=0; %Plot the comparison of Nimbus-7 with corrected satellites, proxies
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=0; %Calculate change in TSI between two periods
+gapChange=1; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
@@ -31,7 +31,7 @@ allCalcs=0;
 % OLD Figures and Calculations
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 priorposterior=0; %Plot the priors and posteriors for each observer
-threeScenario_23_03_17=1; %Plot results from first draft of manuscript
+threeScenario_23_03_17=0; %Plot results from first draft of manuscript
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
 BTSIPath= 'ar2_23_03_17.mat';

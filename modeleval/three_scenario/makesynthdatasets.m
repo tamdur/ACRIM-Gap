@@ -32,7 +32,7 @@ end
 %Get other metadata
 %Load data array, with colLabels corresponding to observer source for each column
 %This is the obsmatrix used in initobservationmodelparams.m
-obsmatrix='obs_23_02_25'; 
+obsmatrix='obs_23_02_01'; 
 load(obsmatrix);
 setInfo.dateM=dateM;
 setInfo.Ainit=Ainit;

@@ -25,8 +25,8 @@ PMOD=oTSI(7).mthtsi;
 datePMOD=oTSI(7).mthdatetime;
 
 %Load SOLID values and datetime vector
-SOLID=oTSI(2).mthtsi;
-dateSOLID=oTSI(2).mthdatetime;
+SOLID=oTSI(9).mthtsi;
+dateSOLID=oTSI(9).mthdatetime;
 
 dateS=getdates;
 dates=datejd(dateS.acrimplusfive);

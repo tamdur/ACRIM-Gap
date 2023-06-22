@@ -14,7 +14,7 @@ noERBE=0;
 altACRIM1=0;
 
 %Make sure everything is visible
-parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+%parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools/gibbs_functions')
