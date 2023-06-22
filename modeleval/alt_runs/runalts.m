@@ -14,7 +14,7 @@ noERBE=0;
 altACRIM1=0;
 
 %Make sure everything is visible
-%parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
+parpool('local',str2num(getenv('SLURM_CPUS_PER_TASK')))
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools')
 addpath('/net/rcstorenfs02/ifs/rc_labs/huybers_lab/tamdur/ACRIM-Gap/tools/gibbs_functions')
@@ -54,7 +54,8 @@ if synthSolid
     opts.normalize=true;
     opts.magDependent=true;
     [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,[],[]);
-    runthreescenariotest_23_02_15(ACRIM,SOLID,AS,setInfo,[],...
+    scenarios=["ACRIM";"SOLID";"AS"];
+    runthreescenariotest_23_06_21(ACRIM,SOLID,AS,scenarios,setInfo,[],...
         'threetestcluster_23_06_22.mat',opts);
 end
 if synthSolidNoRho
@@ -65,9 +66,9 @@ if synthSolidNoRho
     opts.NRLTSIprior=true;
     opts.normalize=true;
     opts.magDependent=true;
-    [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,[],[]);
+    [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,0,[]);
     scenarios=["ACRIM";"SOLID";"AS"];
-    runthreescenariotest_23_02_15(ACRIM,SOLID,AS,scenarios,setInfo,[],...
+    runthreescenariotest_23_06_21(ACRIM,SOLID,AS,scenarios,setInfo,[],...
         'threetestcluster_norho_23_06_22.mat',opts);
 end
 if synthGeneric
