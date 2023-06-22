@@ -26,7 +26,7 @@ function [H0, Hsig, T0, th0, eta0, Xsig] = getpriors(NN, oindex, tindex, pindex,
 %
 % OUTPUTS:
 % - H0: prior for scaling H of form [a_i b_i c_i]
-% - Hsig: prior sigma for scaling H
+% - Hsig: prior covariance hyperparameters for scaling H
 % - T0: vector of initial hyperparameters for the prior noise variance
 % - th0: prior for proxy noise variance
 % - eta0: initial guess for eta
@@ -202,12 +202,12 @@ H0=zeros(NN,3);H0(:,2) = 1; %prior for scaling H of form [a_i b_i c_i]
 Hsig=1E-12.*ones(NN,3);
 if isfield(opts,'type')
     if strcmp(opts.type,'fac')
-        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior sigma for offset
-        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior sigma for scaling
+        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior variance for offset
+        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior variance for scaling
     end
     if strcmp(opts.type,'spot')
-        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior sigma for offset
-        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior sigma for scaling
+        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior variance for offset
+        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior variance for scaling
         for ii=1:length(obsPrior)
             if strcmp(obsPrior(ii).name,"SATIRE-S Sunspot Contribution")
                 H0(ii,2)=-1;
@@ -215,13 +215,13 @@ if isfield(opts,'type')
         end
     end
     if strcmp(opts.type,'osf')
-        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior sigma for offset
-        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior sigma for scaling
+        Hsig(:,1)=Hsig(:,1)+(1.*oindex');%prior variance for offset
+        Hsig(:,2)=Hsig(:,2)+(0.25.*pindex');%prior variance for scaling
     end
 else
-    Hsig(:,1)=Hsig(:,1)+(offSig.*oindex');%prior sigma for offset
-    Hsig(:,2)=Hsig(:,2)+(1000.*pindex');%prior sigma for scaling
-    Hsig(:,3)=Hsig(:,3)+(mSig.*tindex'); %prior sigma for drift
+    Hsig(:,1)=Hsig(:,1)+(offSig.*oindex');%prior variance for offset
+    Hsig(:,2)=Hsig(:,2)+(1000.*pindex');%prior variance for scaling
+    Hsig(:,3)=Hsig(:,3)+(mSig.*tindex'); %prior variance for drift
 end
 %Make changes for proxies if linearity assumed (first row sunspots, second row mg)
 proxI=find(~satindex);%indices for proxies

@@ -4,7 +4,9 @@
 clearvars
 lag1=0;
 lag3=0;
-synthGeneric=1;
+synthSolid=1;
+synthSolidNoRho=0;
+synthGeneric=0; %Default in first draft
 synthAltH=0;
 synthNoRho=0;
 largeSynth=0;
@@ -43,6 +45,31 @@ if lag3
     opts.saveFile='ar3_23_02_15.mat';
     runchain_23_02_21(valM,oM,colLabels,opts);
 end
+if synthSolid
+    opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=10500; %Total length of chain, including burn-in
+    opts.dispProgress=true;
+    opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
+    opts.NRLTSIprior=true;
+    opts.normalize=true;
+    opts.magDependent=true;
+    [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,[],[]);
+    runthreescenariotest_23_02_15(ACRIM,SOLID,AS,setInfo,[],...
+        'threetestcluster_23_06_22.mat',opts);
+end
+if synthSolidNoRho
+    opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
+    opts.reps=10500; %Total length of chain, including burn-in
+    opts.dispProgress=true;
+    opts.HsigScale=1; %Change the variance parameters of Hsig by scaling factor
+    opts.NRLTSIprior=true;
+    opts.normalize=true;
+    opts.magDependent=true;
+    [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,[],[]);
+    scenarios=["ACRIM";"SOLID";"AS"];
+    runthreescenariotest_23_02_15(ACRIM,SOLID,AS,scenarios,setInfo,[],...
+        'threetestcluster_norho_23_06_22.mat',opts);
+end
 if synthGeneric
     opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
     opts.reps=10500; %Total length of chain, including burn-in
@@ -52,7 +79,8 @@ if synthGeneric
     opts.normalize=true;
     opts.magDependent=true;
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,[],[]);
-    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_generic_23_03_17.mat',opts);
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],...
+        'threetestcluster_generic_23_03_17.mat',opts);
 end
 if synthAltH
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(2,[],'3scenario_rng2__23_02_15.mat');
@@ -67,7 +95,8 @@ if synthNoRho
     opts.normalize=true;
     opts.magDependent=true;
     [AP,ACRIM,PMOD,setInfo]=makesynthdatasets(1,0,[]);
-    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],'threetestcluster_norho_23_03_17.mat',opts);
+    runthreescenariotest_23_02_15(ACRIM,PMOD,AP,setInfo,[],...
+        'threetestcluster_norho_23_03_17.mat',opts);
 end
 if largeSynth
     opts.burn = 500; %Number of burn-in reps assumed for chain length analysis

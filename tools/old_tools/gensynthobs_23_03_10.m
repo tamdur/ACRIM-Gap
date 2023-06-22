@@ -1,8 +1,8 @@
-function [valS,dateM] = gensynthobs(scenario,Ainit,epsilon,rho,t,oM)
+function [valS,dateM] = gensynthobs_23_03_10(scenario,Ainit,epsilon,rho,t,oM)
 %GENSYNTHOBS Generate a set of synthetic observations for ACRIM-Gap BTSI
 %testing.
 % INPUTS:
-%           scenario: char vector, either 'ACRIM' 'PMOD' or 'SOLID', that informs
+%           scenario: char vector, either 'ACRIM' or 'PMOD', that informs
 %           which baseline TSI scenario to use. Error otherwise
 %           Ainit: assumed true observation matrix, from
 %           initobservationmodelparams.m
@@ -19,22 +19,15 @@ function [valS,dateM] = gensynthobs(scenario,Ainit,epsilon,rho,t,oM)
 
 
 %Load TSI series used for the assumed truth
-tsi = maketsiseries;
+tsi = twotsiseries;
 
 if strcmp(scenario,'ACRIM')
     x=tsi.ACRIM;
 elseif strcmp(scenario,'ACRIM/PMOD proxy')
     x=tsi.ACRIM;
     xprox=tsi.PMOD;
-elseif strcmp(scenario,'SOLID')
-    x=tsi.SOLID;
-elseif strcmp(scenario,'ACRIM/SOLID proxy')
-    x=tsi.ACRIM;
-    xprox=tsi.SOLID;
-elseif strcmp(scenario,'PMOD')
+else 
     x=tsi.PMOD;
-else
-    error('Input valid scenario')
 end
 dateM=tsi.date;
 
@@ -49,7 +42,7 @@ proxInd=find(prox);satInd=find(~prox);
 
 %First, create synthetic data for proxies (offset and Gaussian noise)
 for ii=1:length(proxInd)
-    if any(strcmp(scenario,["ACRIM/PMOD proxy";"ACRIM/SOLID proxy"]))
+    if strcmp(scenario,'ACRIM/PMOD proxy')
         valS(:,proxInd(ii))=(xprox-mean(xprox)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);
     else
         valS(:,proxInd(ii))=(x-mean(x)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);

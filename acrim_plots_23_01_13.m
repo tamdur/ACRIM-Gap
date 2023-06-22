@@ -9,7 +9,7 @@ clearvars
 % otherwise
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLOTS
-tsiComparison =1; %plot Figure 1 of manuscript
+tsiComparison =0; %plot Figure 1 of manuscript
 priorposterior2=0; %Plot the priors and posteriors for each observer
 obsContributions=0; %Plot the relative contribution of each observer to BTSI over time
 threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
@@ -31,6 +31,7 @@ allCalcs=0;
 % OLD Figures and Calculations
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
 priorposterior=0; %Plot the priors and posteriors for each observer
+threeScenario_23_03_17=1; %Plot results from first draft of manuscript
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
 BTSIPath= 'ar2_23_03_17.mat';
@@ -113,14 +114,14 @@ if tsiComparison
     ylabel('Sunspot number')
     yyaxis right
     h(2)=plot(dateM,valM(:,2)+offsets(2),'.','MarkerSize',10);
-    legend(h,'Silso sunspot number','Mg-II')
+    legend(h,'SILSO','Bremen Mg-II')
     legend boxoff
     ylabel('Mg-II index')
     xlim([datejd(dates(1)) datejd(dates(2))])
     yyaxis left
     ylim([0 300])
     set(gca,'FontSize',fSize)
-    text(datetime(1984,7,1),325,'(a)','FontSize',fSize)
+    text(datetime(1984,7,1),320,'(a)','FontSize',fSize)
     
     subplot('position',[.09 .52 .82 .275]) %Plot of satellite observations
     fill(ca,[1359 1359 1375 1375],[1 1 1],'FaceAlpha',...
@@ -141,11 +142,12 @@ if tsiComparison
             plot(dateM(oM(:,ii)),tM(oM(:,ii)),'Color','r')
             hold on
         end
-        plot(dateMAll,valMAll(:,ii)+offsets(ii),'o','MarkerSize',4,...
-            'Color',c(ind,:));
-        hold on
+%         plot(dateMAll,valMAll(:,ii)+offsets(ii),'o','MarkerSize',4,...
+%             'Color',c(ind,:));
+%         hold on
         hh(ind) = plot(dateM,valM(:,ii)+offsets(ii),'.','MarkerSize',10,...
-            'Color',c(ind,:));
+            'Color',c(2*(ii-2),:));
+        hold on
         ind = ind + 1;
     end
     xlim([datejd(dates(1)) datejd(dates(2))])
@@ -153,7 +155,7 @@ if tsiComparison
     legend(hh,colLabels(3:end))
     legend boxoff
     ylabel('TSI (W/m^{2})')
-    text(datetime(1984,7,1),1374.6,'(b)','FontSize',fSize)
+    text(datetime(1984,7,1),1374.5,'(b)','FontSize',fSize)
     set(gca,'FontSize',fSize)
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -231,10 +233,10 @@ if tsiComparison
     xlim([datejd(dates(1)) datejd(dates(2))])
     ylim([-0.9 1.25])
     text(datetime(1984,7,1),1.3,'(c)','FontSize',fSize)
-    saveas(gcf,'plots/tsicompare_23_03_18.png')
+    saveas(gcf,'plots/tsicompare_23_03_21.png')
 end
 if priorposterior2
-    datesave='23_03_18'; %Date for figure name
+    datesave='23_03_21'; %Date for figure name
     lI=[6;3;5;1;4;2;7];
     satindex=outDat.satindex;
     obsUsed=satindex;
@@ -314,7 +316,7 @@ if priorposterior2
     set(gca,'FontSize',fSize)
     xlim([1357 1372])
     ylim([0 7.25])
-    text(1357.15,7.65,'(a)','FontSize',fSize+6)
+    text(1357.15,7.65,'(a)','FontSize',fSize)
     %------------------------------------------------------------------
     % Next, plot estimated linear drifts 
     %------------------------------------------------------------------
@@ -342,7 +344,7 @@ if priorposterior2
         h(ii)=plot(xPost,yPost,'Color',c(2*ii,:),'LineWidth',3);
     end
     h(ii+1)=plot(xP,yP,'Color','k','LineWidth',5);
-    legendtxt=[colLabels(satI);"Prior Distribution"];
+    legendtxt=[colLabels(satI);"Prior distribution"];
     legend(h,legendtxt,'Location','NorthWest')
     legend boxoff
     %xlim([quantile(vals2(:,ii),0.001) quantile(vals2(:,ii),0.999)])
@@ -350,7 +352,7 @@ if priorposterior2
     set(gca,'ytick',[])
     set(gca,'FontSize',fSize)
     xlim([-1 1])
-    text(-0.98,4.25,'(b)','FontSize',fSize+6)
+    text(-0.98,4.25,'(b)','FontSize',fSize)
     %------------------------------------------------------------------
     % Last, plot noise estimates
     %------------------------------------------------------------------
@@ -390,7 +392,7 @@ if priorposterior2
     xtickformat('%.2f')
     xlabel("W/m^{2}")
     set(gca,'FontSize',fSize)
-    text(0.0055,32,'(c)','FontSize',fSize+6)
+    text(0.0055,31.8,'(c)','FontSize',fSize)
     saveas(gcf,['plots/priorposterior_' datesave '.png'])
 end
 if obsContributions
@@ -422,23 +424,24 @@ if obsContributions
             1,'LineStyle','--');
     hold on
     ind=1;
+    cp=colororder;
     for ii=1:2
-        h(ind)=plot(dateM,cn(:,ind),'--','LineWidth',4);
+        h(ind)=plot(dateM,cn(:,ind),'--','LineWidth',4,'Color',cp(ii,:));
         hold on
         ind=ind+1;
     end
     for ii=1:5
-        h(ind)=plot(dateM,cn(:,ind),'LineWidth',3);
+        h(ind)=plot(dateM,cn(:,ind),'LineWidth',3,'Color',c(2*ii,:));
         hold on
         ind=ind+1;
     end
     legend(h,colLabels,'Location','NorthWest','NumColumns',2)
     legend boxoff
     xlabel('Year')
-    ylabel('Fractional Contribution')
+    ylabel('Fractional contribution')
     set(gca,'FontSize',fSize)
     ylim([0 0.5])
-    saveas(gcf,'plots/obscontribution_23_03_18.png')
+    saveas(gcf,'plots/obscontribution_23_03_21.png')
     
 end
 if threeScenario
@@ -470,7 +473,7 @@ if threeScenario
     xlabel('Year')
     ylabel('Satellite observer error (W/m^{2})')
     set(gca,'FontSize',fSize)
-    text(datetime(1984,7,1),1.26,'(a)','FontSize',fSize+6)
+    text(datetime(1984,7,1),1.26,'(a)','FontSize',fSize)
     ylim([-1.35 1.15])
     
     %Plot a panel with the ACRIM Gap outputs
@@ -502,12 +505,12 @@ if threeScenario
     subplot('position',[.09 .07 .88 .48]) %Plot of proxy observations
     h(1)=histogram(ACRIM.gap,'BinWidth',0.025);
     hold on
-    line([ACRIMGAP ACRIMGAP],[0 200],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
+    line([ACRIMGAP ACRIMGAP],[0 300],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
     disp(['ACRIM 95\% CI:' num2str(sum(ACRIM.within)./size(threeTest,2),'%.2f')])
     hold on
     h(2)=histogram(PMOD.gap,'BinWidth',0.025);
     hold on
-    line([PMODGAP PMODGAP],[0 200],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
+    line([PMODGAP PMODGAP],[0 300],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
     hold on
     h(3)=histogram(AP.gap,'BinWidth',0.025,'FaceColor',[1 0.01 0.01],...
         'FaceAlpha',0.5,'LineStyle','--','LineWidth',1);
@@ -518,14 +521,14 @@ if threeScenario
     xlabel('ACRIM Gap change (W/m^{2})')
     ylabel('Number of simulations')
     set(gca,'FontSize',fSize)
-    xlim([-0.42 1])
-    text(-.412,206,'(b)','FontSize',fSize+6)
+    xlim([-0.46 .96])
+    ylim([0 300])
+    text(-.452,309,'(b)','FontSize',fSize)
     %Calculate the statistical power of BTSI in inferring ARIM Gap
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/threescenario_23_03_18.png')
-    
+    saveas(gcf,'plots/threescenario_23_03_21.png')
 end
 if nimbusCompare
     %Plot the comparison of Nimbus-7 with corrected satellites, proxies
@@ -548,6 +551,7 @@ if nimbusCompare
     %Create panels where we can plot estimates from each source against
     %Nimbus-7
     figure2('Position',[10 10 1000 1200])
+    txtlabels=["(a)","(b)","(c)","(d)","(e)"];
     for ii=1:length(cmpN)
         subplot(5,1,ii)
         fill(ca,[-2 -2 3 3],[1 1 1],'FaceAlpha',...
@@ -568,12 +572,13 @@ if nimbusCompare
         hold on
         xlim([dateM(1) dateM(end)])
         ylim([-1.7 2.5])
-        ylabel('TSI Anomaly (W/m^{2})')
+        ylabel('TSI anom. (W/m^{2})')
         legend(h,colLabels(cmpN(ii)),"Nimbus-7","Location","NorthWest")
+        text(datetime(1984,7,1),2.9,txtlabels(ii),'FontSize',fSize)
         set(gca,'FontSize',fSize)
     end
     xlabel('Year')
-    saveas(gcf,'plots/nimbus-7compare_23_03_18.png')
+    saveas(gcf,'plots/nimbus-7compare_23_03_21.png')
     
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1330,6 +1335,93 @@ if priorposterior
         set(gca,'FontSize',fSize)
     end
     saveas(gcf,['plots/priorposterior3_' datesave '.png'])
+end
+if threeScenario_23_03_17
+    %Plot a panel with the error structure of the satellites
+    %Load synthetic datasets and results
+    load 3scenario_23_02_22.mat
+    tsi = twotsiseries;
+    Ainit=setInfo.Ainit;
+    figure2('Position',[10 10 1150 1000])
+    subplot('position',[.09 .61 .88 .35]) %Plot of proxy observations
+    fill(ca,[-2 -2 2 2],[1 1 1],'FaceAlpha',...
+        0.9,'LineStyle','--');
+    hold on
+    %First, plot the error structure sans AR(1)
+    satIndex=[5;1;4;2;7];
+    ind=1;
+    for ii=1:length(satIndex)
+        pred=Ainit(satIndex(ii),1)+Ainit(satIndex(ii),3).*tau(:,satIndex(ii));
+        pred=pred(oM(:,satIndex(ii)));
+        h(ind)=plot(dateM(oM(:,satIndex(ii))),pred,'Color',c(2*ii,:),'LineWidth',2);
+        hold on
+        plot(dateM,ACRIM(1).valM(:,satIndex(ii))-(tsi.ACRIM-nanmean(tsi.ACRIM)),'--','Color',c(2*ii,:),'LineWidth',1.5)
+        hold on
+        legTxt(ii)=strcat("Synthetic ",colLabels(satIndex(ii)));
+        ind=ind+1;
+    end
+    legend(h,legTxt,'Location','NorthWest')
+    legend boxoff
+    xlabel('Year')
+    ylabel('Satellite observer error (W/m^{2})')
+    set(gca,'FontSize',fSize)
+    text(datetime(1984,7,1),1.26,'(a)','FontSize',fSize)
+    ylim([-1.35 1.15])
+    
+    %Plot a panel with the ACRIM Gap outputs
+    clear h
+    %load threetestcluster_rng1_23_02_21.mat
+    load threetestcluster_generic_23_03_17.mat
+    PMODGAP=0.0159; %FROM THE gapChange calculation
+    ACRIMGAP=0.7057; %From the gapChange calculation
+    %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
+    ACRIM=struct;
+    PMOD=struct;
+    AP=struct;
+    for ii=1:size(threeTest,2)
+        ACRIM.gap(ii)=threeTest(ii).ACRIM.muGap;
+        ACRIM.gapUnc(ii)=threeTest(ii).ACRIM.uncGap;
+        ACRIM.sigY1(ii,:)=threeTest(ii).ACRIM.sigYOut;
+        PMOD.gap(ii)=threeTest(ii).PMOD.muGap;
+        PMOD.gapUnc(ii)=threeTest(ii).PMOD.uncGap;
+        PMOD.sigY1(ii,:)=threeTest(ii).PMOD.sigYOut;
+        %See if gap is within expected uncertainty
+        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<(2.*ACRIM.gapUnc(ii));
+        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<(2.*PMOD.gapUnc(ii));
+        AP.gap(ii)=threeTest(ii).AP.muGap;
+        AP.gapUnc(ii)=threeTest(ii).AP.uncGap;
+        AP.sigY1(ii,:)=threeTest(ii).AP.sigYOut;
+        %See if gap is within expected uncertainty
+        AP.within(ii)=abs(AP.gap(ii)-ACRIMGAP)<(2.*AP.gapUnc(ii));
+    end
+    subplot('position',[.09 .07 .88 .48]) %Plot of proxy observations
+    h(1)=histogram(ACRIM.gap,'BinWidth',0.025);
+    hold on
+    line([ACRIMGAP ACRIMGAP],[0 300],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
+    disp(['ACRIM 95\% CI:' num2str(sum(ACRIM.within)./size(threeTest,2),'%.2f')])
+    hold on
+    h(2)=histogram(PMOD.gap,'BinWidth',0.025);
+    hold on
+    line([PMODGAP PMODGAP],[0 300],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
+    hold on
+    h(3)=histogram(AP.gap,'BinWidth',0.025,'FaceColor',[1 0.01 0.01],...
+        'FaceAlpha',0.5,'LineStyle','--','LineWidth',1);
+    
+    legend(h,'ACRIM-All','CPMDF-All','ACRIM-Satellite/CPMDF-Proxy','Location','NorthWest')
+    legend boxoff
+    disp(['PMOD 95\% CI:' num2str(sum(PMOD.within)./size(threeTest,2),'%.2f')])
+    xlabel('ACRIM Gap change (W/m^{2})')
+    ylabel('Number of simulations')
+    set(gca,'FontSize',fSize)
+    xlim([-0.46 .96])
+    ylim([0 300])
+    text(-.452,309,'(b)','FontSize',fSize)
+    %Calculate the statistical power of BTSI in inferring ARIM Gap
+    PMOD_sig=quantile(PMOD.gap,.975);
+    sig_ct=sum(AP.gap>PMOD_sig);
+    stat_power=sig_ct./length(ACRIM.gap);
+    saveas(gcf,'plots/threescenario_23_03_21.png')
+    
 end
     
     
