@@ -16,12 +16,12 @@ threeScenario=0; %twoScenario, but with ACRIM-Sat/CPMDF-Proxy scenario
 nimbusCompare=0; %Plot the comparison of Nimbus-7 with corrected satellites, proxies
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OTHER CALCULATIONS
-gapChange=1; %Calculate change in TSI between two periods
+gapChange=0; %Calculate change in TSI between two periods
 trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
-table2=0; %Calculate values for Table 2, the posterior model parameters
+table2=1; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
@@ -35,6 +35,7 @@ threeScenario_23_03_17=0; %Plot results from first draft of manuscript
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fSize = 20;
 BTSIPath= 'ar2_23_03_17.mat';
+%BTSIPath= 'ar2_pmod_23_03_17.mat';
 load(BTSIPath); %Select the output chain to plot/analyze
 obsmatrix='obs_23_02_01.mat';
 load(obsmatrix); %From makeobsarray.m
@@ -448,10 +449,10 @@ if threeScenario
     %Plot a panel with the error structure of the satellites
     %Load synthetic datasets and results
     load 3scenario_23_02_22.mat
-    tsi = twotsiseries;
+    tsi = maketsiseries;
     Ainit=setInfo.Ainit;
-    figure2('Position',[10 10 1150 1000])
-    subplot('position',[.09 .61 .88 .35]) %Plot of proxy observations
+    figure2('Position',[10 10 1050 900])
+    subplot('position',[.09 .63 .88 .33]) %Plot of proxy observations
     fill(ca,[-2 -2 2 2],[1 1 1],'FaceAlpha',...
         0.9,'LineStyle','--');
     hold on
@@ -479,56 +480,59 @@ if threeScenario
     %Plot a panel with the ACRIM Gap outputs
     clear h
     %load threetestcluster_rng1_23_02_21.mat
-    load threetestcluster_generic_23_03_17.mat
-    PMODGAP=0.0159; %FROM THE gapChange calculation
+    %load threetestcluster_generic_23_03_17.mat
+    load threetestcluster_23_06_22.mat
+    %load threetestcluster_norho_23_06_22.mat
+    PMODGAP=0.0159; %From the gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
+    SOLIDGAP=0.0241; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
-    ACRIM=struct;
-    PMOD=struct;
-    AP=struct;
+    sc1=struct;
+    sc2=struct;
+    sc3=struct;
     for ii=1:size(threeTest,2)
-        ACRIM.gap(ii)=threeTest(ii).ACRIM.muGap;
-        ACRIM.gapUnc(ii)=threeTest(ii).ACRIM.uncGap;
-        ACRIM.sigY1(ii,:)=threeTest(ii).ACRIM.sigYOut;
-        PMOD.gap(ii)=threeTest(ii).PMOD.muGap;
-        PMOD.gapUnc(ii)=threeTest(ii).PMOD.uncGap;
-        PMOD.sigY1(ii,:)=threeTest(ii).PMOD.sigYOut;
+        sc1.gap(ii)=threeTest(ii).sc1.muGap;
+        sc1.gapUnc(ii)=threeTest(ii).sc1.uncGap;
+        sc1.sigY1(ii,:)=threeTest(ii).sc1.sigYOut;
+        sc2.gap(ii)=threeTest(ii).sc2.muGap;
+        sc2.gapUnc(ii)=threeTest(ii).sc2.uncGap;
+        sc2.sigY1(ii,:)=threeTest(ii).sc2.sigYOut;
         %See if gap is within expected uncertainty
-        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<(2.*ACRIM.gapUnc(ii));
-        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<(2.*PMOD.gapUnc(ii));
-        AP.gap(ii)=threeTest(ii).AP.muGap;
-        AP.gapUnc(ii)=threeTest(ii).AP.uncGap;
-        AP.sigY1(ii,:)=threeTest(ii).AP.sigYOut;
+        sc1.within(ii)=abs(sc1.gap(ii)-ACRIMGAP)<(2.*sc1.gapUnc(ii));
+        sc2.within(ii)=abs(sc2.gap(ii)-SOLIDGAP)<(2.*sc2.gapUnc(ii));
+        sc3.gap(ii)=threeTest(ii).sc3.muGap;
+        sc3.gapUnc(ii)=threeTest(ii).sc3.uncGap;
+        sc3.sigY1(ii,:)=threeTest(ii).sc3.sigYOut;
         %See if gap is within expected uncertainty
-        AP.within(ii)=abs(AP.gap(ii)-ACRIMGAP)<(2.*AP.gapUnc(ii));
+        sc3.within(ii)=abs(sc3.gap(ii)-ACRIMGAP)<(2.*sc3.gapUnc(ii));
     end
-    subplot('position',[.09 .07 .88 .48]) %Plot of proxy observations
-    h(1)=histogram(ACRIM.gap,'BinWidth',0.025);
+    subplot('position',[.09 .09 .88 .46]) %Plot of proxy observations
+    h(1)=histogram(sc1.gap,'BinWidth',0.025);
     hold on
-    line([ACRIMGAP ACRIMGAP],[0 300],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
-    disp(['ACRIM 95\% CI:' num2str(sum(ACRIM.within)./size(threeTest,2),'%.2f')])
+    line([ACRIMGAP ACRIMGAP],[0 400],'LineWidth',2,'Color',[ 0    0.4470    0.7410]);
+    disp(['ACRIM 95\% CI:' num2str(sum(sc1.within)./size(threeTest,2),'%.3f')])
     hold on
-    h(2)=histogram(PMOD.gap,'BinWidth',0.025);
+    h(2)=histogram(sc2.gap,'BinWidth',0.025);
     hold on
-    line([PMODGAP PMODGAP],[0 300],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
+    line([SOLIDGAP SOLIDGAP],[0 400],'LineWidth',2,'Color',[0.8500    0.3250    0.0980]);
     hold on
-    h(3)=histogram(AP.gap,'BinWidth',0.025,'FaceColor',[1 0.01 0.01],...
+    h(3)=histogram(sc3.gap,'BinWidth',0.025,'FaceColor',[1 0.01 0.01],...
         'FaceAlpha',0.5,'LineStyle','--','LineWidth',1);
     
-    legend(h,'ACRIM-All','CPMDF-All','ACRIM-Satellite/CPMDF-Proxy','Location','NorthWest')
+    legend(h,'ACRIM-All','Community-All','ACRIM-Satellite/Community-Proxy','Location','NorthWest')
     legend boxoff
-    disp(['PMOD 95\% CI:' num2str(sum(PMOD.within)./size(threeTest,2),'%.2f')])
+    disp(['Community 95\% CI:' num2str(sum(sc2.within)./size(threeTest,2),'%.3f')])
     xlabel('ACRIM Gap change (W/m^{2})')
     ylabel('Number of simulations')
     set(gca,'FontSize',fSize)
-    xlim([-0.46 .96])
-    ylim([0 300])
-    text(-.452,309,'(b)','FontSize',fSize)
+    xlim([-0.53 .96])
+    ylim([0 330])
+    text(-.522,341,'(b)','FontSize',fSize)
     %Calculate the statistical power of BTSI in inferring ARIM Gap
-    PMOD_sig=quantile(PMOD.gap,.975);
-    sig_ct=sum(AP.gap>PMOD_sig);
-    stat_power=sig_ct./length(ACRIM.gap);
-    saveas(gcf,'plots/threescenario_23_03_21.png')
+    SOLID_sig=quantile(sc2.gap,.975);
+    sig_ct=sum(sc3.gap>SOLID_sig);
+    stat_power=sig_ct./length(sc1.gap);
+    saveas(gcf,'plots/threescenario_23_06_22.png')
 end
 if nimbusCompare
     %Plot the comparison of Nimbus-7 with corrected satellites, proxies
@@ -617,6 +621,11 @@ if gapChange
     BTSIUB=quantile(BTSIAll,0.975,1);
         
     
+    %Get NRLTSI (4)
+    xNRLTSI=oTSI(4).mthtsi;dateNRLTSI=oTSI(4).mthdatetime;
+    NRLTSI=[mean(xNRLTSI(dateNRLTSI >= stInt(1)& dateNRLTSI <=stInt(end)));
+        mean(xNRLTSI(dateNRLTSI >=  endInt(1) & dateNRLTSI<=endInt(end)))];
+    NRLTSI=[NRLTSI;diff(NRLTSI)];
     
     %Get PMOD (7)
     xPMOD=oTSI(7).tsi;datePMOD=oTSI(7).datetime;
@@ -625,7 +634,7 @@ if gapChange
     PMOD=[PMOD;diff(PMOD)];
     
     %Get SOLID (9)
-    xSOLID=oTSI(9).tsi;dateSOLID=oTSI(9).datetime;
+    xSOLID=oTSI(10).tsi;dateSOLID=oTSI(10).datetime;
     SOLID=[mean(xSOLID(dateSOLID >= stInt(1)& dateSOLID <=stInt(end)));
         mean(xSOLID(dateSOLID >=  endInt(1) & dateSOLID<=endInt(end)))];
     SOLID=[SOLID;diff(SOLID)];
@@ -743,14 +752,14 @@ if table2
     for ii=1:length(colLabels)
         ind=table2order(ii);
         Asub=squeeze(A(ind,:,:));
-        tabout(:,ii)=[offsets(ind);prctile(Asub(1,:),[2.5 50 97.5])'+offsets(ind);...
-            outDat.H0(ind,2).*outDat.scaling(table2order(ii));prctile(Asub(2,:),[2.5 50 97.5])';...
-            prctile(Asub(3,:),[2.5 50 97.5])';...
-            e0(ind)./outDat.H0(table2order(ind),2);prctile(sqrt(sigY(ind,:))./Asub(2,:),[2.5 50 97.5])'];
+        tabout(:,ii)=[offsets(ind);prctile(Asub(1,:),[50 2.5 97.5])'+offsets(ind);...
+            outDat.H0(ind,2).*outDat.scaling(table2order(ii));prctile(Asub(2,:),[50 2.5 97.5])';...
+            prctile(Asub(3,:),[50 2.5 97.5])';...
+            e0(ind)./outDat.H0(table2order(ind),2);prctile(sqrt(sigY(ind,:))./Asub(2,:),[50 2.5 97.5])'];
     end
-    rows=["a_0";"mean 2.5";"mean 50";"mean 97.5";"b_0";...
-        "scaling 2.5";"scaling 50";"scaling 97.5";...
-        "drift 2.5";"drift 50";"drift 97.5";"\epsilon_0";"error 2.5";"error 50";"error 97.5"];
+    rows=["a_0";"mean 50";"mean 2.5";"mean 97.5";"b_0";...
+        "scaling 50";"scaling 2.5";"scaling 97.5";...
+        "drift 50";"drift 2.5";"drift 97.5";"\epsilon_0";"error 50";"error 2.5";"error 97.5"];
     displayTable=array2table(tabout,'VariableNames',colLabels(table2order),'RowNames',rows)
 end
 if tableSynthH
@@ -813,6 +822,7 @@ if threeScenarioAnalysis
     load threetestcluster_norho_23_02_21.mat
     PMODGAP=0.0159; %FROM THE gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
+    SOLIDGAP=0.0241; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
     ACRIM=struct;
     PMOD=struct;
@@ -845,7 +855,7 @@ if threeScenarioAnalysis
     end
     tsi = twotsiseries;
     
-    %Calculate the statistical power of BTSI in inferring ARIM Gap
+    %Calculate the statistical power of BTSI in inferring ACRIM Gap
     PMOD_sig=quantile(PMOD.gap,.975);
     sig_ct=sum(AP.gap>PMOD_sig);
     stat_power=sig_ct./length(ACRIM.gap);
@@ -906,7 +916,7 @@ if allCalcs
         mean(xACRIM(dateACRIM >=  endInt(1) & dateACRIM<=endInt(end)))];
     ACRIM=[ACRIM;diff(ACRIM)];
     
-    cMean={BTSI(3);PMOD(3);ACRIM(3)};
+    cMean={BTSI(3);SOLID(3);ACRIM(3)};
     c25={BTSILB(3);NaN;NaN};
     c975={BTSIUB(3);NaN;NaN};
     
@@ -1006,49 +1016,50 @@ if allCalcs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Calculate 4 scenario numbers
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    load threetestcluster_generic_23_03_17.mat
-    PMODGAP=0.0159; %FROM THE gapChange calculation
+    load threetestcluster_23_06_22.mat
+    PMODGAP=0.0159; %From the gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
+    SOLIDGAP=0.0241; %From the gapChange calculation
     %Plot a panel with the correct ACRIM-Gap for ACRIM, what the model finds
-    ACRIM=struct;
-    PMOD=struct;
-    AP=struct;
+    sc1=struct;
+    sc2=struct;
+    sc3=struct;
     for ii=1:size(threeTest,2)
-        ACRIM.gap(ii)=threeTest(ii).ACRIM.muGap;
-        ACRIM.gapUnc(ii)=threeTest(ii).ACRIM.uncGap;
-        ACRIM.sigY1(ii,:)=threeTest(ii).ACRIM.sigYOut;
-        PMOD.gap(ii)=threeTest(ii).PMOD.muGap;
-        PMOD.gapUnc(ii)=threeTest(ii).PMOD.uncGap;
-        PMOD.sigY1(ii,:)=threeTest(ii).PMOD.sigYOut;
+        sc1.gap(ii)=threeTest(ii).sc1.muGap;
+        sc1.gapUnc(ii)=threeTest(ii).sc1.uncGap;
+        sc1.sigY1(ii,:)=threeTest(ii).sc1.sigYOut;
+        sc2.gap(ii)=threeTest(ii).sc2.muGap;
+        sc2.gapUnc(ii)=threeTest(ii).sc2.uncGap;
+        sc2.sigY1(ii,:)=threeTest(ii).sc2.sigYOut;
         %See if gap is within expected uncertainty
-        ACRIM.within(ii)=abs(ACRIM.gap(ii)-ACRIMGAP)<(2.*ACRIM.gapUnc(ii));
-        PMOD.within(ii)=abs(PMOD.gap(ii)-PMODGAP)<(2.*PMOD.gapUnc(ii));
-        AP.gap(ii)=threeTest(ii).AP.muGap;
-        AP.gapUnc(ii)=threeTest(ii).AP.uncGap;
-        AP.sigY1(ii,:)=threeTest(ii).AP.sigYOut;
+        sc1.within(ii)=abs(sc1.gap(ii)-ACRIMGAP)<(2.*sc1.gapUnc(ii));
+        sc2.within(ii)=abs(sc2.gap(ii)-SOLIDGAP)<(2.*sc2.gapUnc(ii));
+        sc3.gap(ii)=threeTest(ii).sc3.muGap;
+        sc3.gapUnc(ii)=threeTest(ii).sc3.uncGap;
+        sc3.sigY1(ii,:)=threeTest(ii).sc3.sigYOut;
         %See if gap is within expected uncertainty
-        AP.within(ii)=abs(AP.gap(ii)-ACRIMGAP)<(2.*AP.gapUnc(ii));
-        APMOD(:,:,ii)=threeTest(ii).ACRIM.Aout;
-        AACRIM(:,:,ii)=threeTest(ii).PMOD.Aout;
+        sc3.within(ii)=abs(sc3.gap(ii)-SOLIDGAP)<(2.*sc3.gapUnc(ii));
+        ASOLID(:,:,ii)=threeTest(ii).sc2.Aout;
+        AACRIM(:,:,ii)=threeTest(ii).sc1.Aout;
     end
     %Calculate the statistical power of BTSI in inferring ARIM Gap
-    PMOD_sig=quantile(PMOD.gap,.975);
-    sig_ct=sum(AP.gap>PMOD_sig);
+    SOLID_sig=quantile(sc2.gap,.975);
+    sig_ct=sum(sc3.gap>SOLID_sig);
     
-    cMean{22}=prctile(PMOD.gap,50);
-    cMean{23}=prctile(ACRIM.gap,50);
-    cMean{24}=prctile(AP.gap,50);
-    c25{22}=prctile(PMOD.gap,2.5);
-    c25{23}=prctile(ACRIM.gap,2.5);
-    c25{24}=prctile(AP.gap,2.5);
-    c975{22}=prctile(PMOD.gap,97.5);
-    c975{23}=prctile(ACRIM.gap,97.5);
-    c975{24}=prctile(AP.gap,97.5);
-    cMean{25}=prctile(PMOD.gapUnc,50).*4;
-    cMean{26}=prctile(ACRIM.gapUnc,50).*4;
-    cMean{27}=sum(PMOD.within)./size(threeTest,2);
-    cMean{28}=sum(ACRIM.within)./size(threeTest,2);
-    cMean{29}=sig_ct./length(ACRIM.gap);
+    cMean{22}=prctile(sc2.gap,50);
+    cMean{23}=prctile(sc1.gap,50);
+    cMean{24}=prctile(sc3.gap,50);
+    c25{22}=prctile(sc2.gap,2.5);
+    c25{23}=prctile(sc1.gap,2.5);
+    c25{24}=prctile(sc3.gap,2.5);
+    c975{22}=prctile(sc2.gap,97.5);
+    c975{23}=prctile(sc1.gap,97.5);
+    c975{24}=prctile(sc3.gap,97.5);
+    cMean{25}=prctile(sc2.gapUnc,50).*4;
+    cMean{26}=prctile(sc1.gapUnc,50).*4;
+    cMean{27}=sum(sc2.within)./size(threeTest,2);
+    cMean{28}=sum(sc1.within)./size(threeTest,2);
+    cMean{29}=sig_ct./length(sc1.gap);
     cMean{30}=linD(4);
     c25{30}=[];c975{30}=[];
     
@@ -1066,18 +1077,18 @@ if allCalcs
     cMean{38}=prctile(outDat.m,50);c25{38}=prctile(outDat.m,2.5);c975{38}=prctile(outDat.m,97.5); %m posterior
     
     
-    rows=["BTSI ACRIM Gap Estimate";"CPMDF ACRIM Gap Estimate";"ACRIM ACRIM Gap Estimate";...
-        "minimum two-sigma BTSI Unc"; "minimum two-sigma BTSI Unc Year";...
-        "maximum two-sigma BTSI Unc"; "maximum two-sigma BTSI Unc Year"; 
-        "ERBE SE";"Nimbus-7 SE";"ACRIM1 SE";"ACRIM2 SE";"VIRGO SE";...
-        "Nimbus-7 drift";"Nimbus-7 drift without ERBE";"ERBE Drift";...
-        "Frohlich Nimbus-7 Drift";"Froshlich reduced ACRIM1 drift";"Reduced ACRIM1 Drift";...
-        "BTSI autocorrelation";"PMOD autocorrelation";"ACRIM autocorrelation";...
-        "CPMDF-All";"ACRIM-All";"ACRIM-Sat/CPMDF-Proxy";
-        "CPMDF-All 95% CI";"ACRIM-All 95% CI";
-        "CPMDF 95% coverage";"ACRIM 95% coverage";"statistical power";"Frohlich ERBE Drift";...
-        "\alpha_1 prior"; "\alpha_1 posterior";"\alpha_2 prior";"\alpha_2 posterior";...
-        "q prior"; "q posterior";"m prior";"m posterior"];
+    rows=["(1) BTSI ACRIM Gap Estimate";"(2) SOLID ACRIM Gap Estimate";"(3) ACRIM ACRIM Gap Estimate";...
+        "(4) minimum two-sigma BTSI Unc"; "(5) minimum two-sigma BTSI Unc Year";...
+        "(6) maximum two-sigma BTSI Unc"; "(7) maximum two-sigma BTSI Unc Year"; 
+        "(8) ERBE SE";"(9) Nimbus-7 SE";"(10) ACRIM1 SE";"(11) ACRIM2 SE";"(12) VIRGO SE";...
+        "(13) Nimbus-7 drift";"(14) Nimbus-7 drift without ERBE";"(15) ERBE Drift";...
+        "(16) Frohlich Nimbus-7 Drift";"(17) Froshlich reduced ACRIM1 drift";"(18) Reduced ACRIM1 Drift";...
+        "(19) BTSI autocorrelation";"(20) PMOD autocorrelation";"(21) ACRIM autocorrelation";...
+        "(22) Community-All";"(23) ACRIM-All";"(24) ACRIM-Sat/Community-Proxy";
+        "(25) Community-All 95% CI";"(26) ACRIM-All 95% CI";
+        "(27) Community 95% coverage";"(28) ACRIM 95% coverage";"(29) statistical power";"(30) Frohlich ERBE Drift";...
+        "(31) \alpha_1 prior"; "(32) \alpha_1 posterior";"(33) \alpha_2 prior";"(34) \alpha_2 posterior";...
+        "(35) q prior"; "(36) q posterior";"(37) m prior";"(38) m posterior"];
     displayTable=cell2table([cMean c25 c975],'VariableNames',["Mean";"2.5th percentile";"97.5th percentile"],'RowNames',rows)
     
      
