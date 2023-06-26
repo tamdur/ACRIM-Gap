@@ -50,11 +50,13 @@ proxInd=find(prox);satInd=find(~prox);
 %First, create synthetic data for proxies (offset and Gaussian noise)
 for ii=1:length(proxInd)
     if any(strcmp(scenario,["ACRIM/PMOD proxy";"ACRIM/SOLID proxy"]))
-        valS(:,proxInd(ii))=(xprox-mean(xprox)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);
+        valS(:,proxInd(ii))=(xprox-mean(xprox));
     else
-        valS(:,proxInd(ii))=(x-mean(x)).*Ainit(proxInd(ii),2)+Ainit(proxInd(ii),1);
+        valS(:,proxInd(ii))=(x-mean(x));
     end
-    valS(:,proxInd(ii))=valS(:,proxInd(ii))+epsilon(proxInd(ii)).*randn(T,1);
+    valS(:,proxInd(ii))=valS(:,proxInd(ii))+epsilon(proxInd(ii)).*randn(T,1); %Add noise
+    valS(:,proxInd(ii))=valS(:,proxInd(ii)).*Ainit(proxInd(ii),2); %Scale
+    valS(:,proxInd(ii))=valS(:,proxInd(ii))+Ainit(proxInd(ii),1); %Add offset
 end
 
 %Next, create synthetic data for satellites (offset and linear drift and

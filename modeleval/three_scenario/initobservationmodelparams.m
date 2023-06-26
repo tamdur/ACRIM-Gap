@@ -29,7 +29,7 @@ Ainit(satindex,3)=A0(satindex(randperm(length(satindex))),3); %Randomly permute 
 
 %Calculate the average noise estimates for each observer, use that to
 %create observational errors for those observers
-epsilon=sqrt(mean(sigY,2)).*Ainit(:,2);
+epsilon=mean(sqrt(sigY),2)./mean(A(:,2,:),3);
 
 %rho=0.9; %Assumed AR(1) parameter for satellites, can infer from obs in future editions
 

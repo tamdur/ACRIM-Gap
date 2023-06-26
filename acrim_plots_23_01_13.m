@@ -21,12 +21,12 @@ trendUnc=0;%Calculate uncertainty in linear drift from BTSI
 posteriorParams=0; %Calculate posterior parameter values and confidence interval
 uncBTSI=0;%Calculate and plot the uncertainty in BTSI
 table1=0; %Calculate parameter values for Table 1 of manuscript
-table2=1; %Calculate values for Table 2, the posterior model parameters
+table2=0; %Calculate values for Table 2, the posterior model parameters
 tableSynthH=0; %Show observer errors used in synthetic experiment
 autocorr=0; %Calculate autocorrelation of BTSI vs other TSI reconstructions
 PMODCorrections=0; %Calculate and plot the corrections made by Frohlich
 threeScenarioAnalysis=0; %Analyze output of three scenario test for debugging purposes
-allCalcs=0;
+allCalcs=1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % OLD Figures and Calculations
 twoScenario=0; %Plot results of synthetic data experiment for ACRIM and PMOD gaps
@@ -481,7 +481,7 @@ if threeScenario
     clear h
     %load threetestcluster_rng1_23_02_21.mat
     %load threetestcluster_generic_23_03_17.mat
-    load threetestcluster_23_06_22.mat
+    load threetestcluster_norho_23_06_25.mat
     %load threetestcluster_norho_23_06_22.mat
     PMODGAP=0.0159; %From the gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
@@ -1016,7 +1016,7 @@ if allCalcs
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %Calculate 4 scenario numbers
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    load threetestcluster_23_06_22.mat
+    load threetestcluster_norho_23_06_25.mat
     PMODGAP=0.0159; %From the gapChange calculation
     ACRIMGAP=0.7057; %From the gapChange calculation
     SOLIDGAP=0.0241; %From the gapChange calculation

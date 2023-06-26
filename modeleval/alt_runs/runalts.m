@@ -56,7 +56,7 @@ if synthSolid
     [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,[],[]);
     scenarios=["ACRIM";"SOLID";"AS"];
     runthreescenariotest_23_06_21(ACRIM,SOLID,AS,scenarios,setInfo,[],...
-        'threetestcluster_23_06_22.mat',opts);
+        'threetestcluster_23_06_26.mat',opts);
 end
 if synthSolidNoRho
     opts.burn = 500; %Number of burn-in reps assumed for chain length analysis
@@ -69,7 +69,7 @@ if synthSolidNoRho
     [AP,ACRIM,PMOD,SOLID,AS,setInfo]=makesynthdatasets(1,0,[]);
     scenarios=["ACRIM";"SOLID";"AS"];
     runthreescenariotest_23_06_21(ACRIM,SOLID,AS,scenarios,setInfo,[],...
-        'threetestcluster_norho_23_06_22.mat',opts);
+        'threetestcluster_norho_23_06_26.mat',opts);
 end
 if synthGeneric
     opts.burn = 500; %Number of burn-in reps assumed for chain length analysis

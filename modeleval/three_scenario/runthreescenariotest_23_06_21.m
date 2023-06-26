@@ -50,41 +50,44 @@ tN=length(sc1); %Number of synthetic datasets to be inferred
 parfor ii=1:tN
     %Run BTSI on ACRIM scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(sc1(ii).valM,oM,dateM,colLabels,opts);
-    [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
+    [xAll,sigY,~,~,~,A,~,outDat] = runchain_23_02_21(sc1(ii).valM,oM,dateM,colLabels,opts);
+    [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap,H0]=returnscenarioinfo(xAll,sigY,A,dateM,outDat);
     threeTest(ii).sc1.Aout=Aout;
     threeTest(ii).sc1.sigYOut=sigYOut;
     threeTest(ii).sc1.AUnc=AUnc;
     threeTest(ii).sc1.sigYUnc=sigYUnc;
     threeTest(ii).sc1.muGap=muGap;
     threeTest(ii).sc1.uncGap=uncGap;
+    threeTest(ii).sc1.H0=H0;
     threeTest(ii).sc1.xm=mean(xAll,2);
     threeTest(ii).sc1.tRun=toc;
     
     %Run BTSI on PMOD or SOLID scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(sc2(ii).valM,oM,dateM,colLabels,opts);
-    [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
+    [xAll,sigY,~,~,~,A,~,outDat] = runchain_23_02_21(sc2(ii).valM,oM,dateM,colLabels,opts);
+    [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap,H0]=returnscenarioinfo(xAll,sigY,A,dateM,outDat);
     threeTest(ii).sc2.Aout=Aout;
     threeTest(ii).sc2.sigYOut=sigYOut;
     threeTest(ii).sc2.AUnc=AUnc;
     threeTest(ii).sc2.sigYUnc=sigYUnc;
     threeTest(ii).sc2.muGap=muGap;
     threeTest(ii).sc2.uncGap=uncGap;
+    threeTest(ii).sc2.H0=H0;
     threeTest(ii).sc2.xm=mean(xAll,2);
     threeTest(ii).sc2.tRun=toc;
     
     
     %Run BTSI on A/P scenario
     tic;
-    [xAll,sigY,~,~,~,A,~,~] = runchain_23_02_21(sc3(ii).valM,oM,dateM,colLabels,opts);
-    [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM);
+    [xAll,sigY,~,~,~,A,~,outDat] = runchain_23_02_21(sc3(ii).valM,oM,dateM,colLabels,opts);
+    [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap,H0]=returnscenarioinfo(xAll,sigY,A,dateM,outDat);
     threeTest(ii).sc3.Aout=Aout;
     threeTest(ii).sc3.sigYOut=sigYOut;
     threeTest(ii).sc3.AUnc=AUnc;
     threeTest(ii).sc3.sigYUnc=sigYUnc;
     threeTest(ii).sc3.muGap=muGap;
     threeTest(ii).sc3.uncGap=uncGap;
+    threeTest(ii).sc3.H0=H0;
     threeTest(ii).sc3.xm=mean(xAll,2);
     threeTest(ii).sc3.tRun=toc;
 end
@@ -92,12 +95,13 @@ scriptName=mfilename;
 save(savePath,'threeTest','scriptName','scenarios')
 end
 
-function [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap]=returnscenarioinfo(xAll,sigY,A,dateM)
+function [Aout,sigYOut,AUnc,sigYUnc,muGap,uncGap,H0]=returnscenarioinfo(xAll,sigY,A,dateM,outDat)
 %Return observation model values
 Aout=mean(A,3);
 sigYOut=mean(sigY,2);
 AUnc=std(A,0,3);
 sigYUnc=std(sigY,0,2);
+H0=outDat.H0;
 
 %Return muGap and uncGap
 %Get the variables of interest from this single scenario
